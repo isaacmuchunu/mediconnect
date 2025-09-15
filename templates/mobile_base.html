@@ -1,0 +1,366 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#dc2626">
+    <meta name="msapplication-navbutton-color" content="#dc2626">
+    <meta name="apple-mobile-web-app-title" content="MediConnect">
+    <meta name="application-name" content="MediConnect">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/logo-32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/logo-16.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/logo-180.png' %}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{% static 'images/logo-152.png' %}">
+    <link rel="apple-touch-icon" sizes="144x144" href="{% static 'images/logo-144.png' %}">
+    <link rel="apple-touch-icon" sizes="120x120" href="{% static 'images/logo-120.png' %}">
+    <link rel="apple-touch-icon" sizes="114x114" href="{% static 'images/logo-114.png' %}">
+    <link rel="apple-touch-icon" sizes="76x76" href="{% static 'images/logo-76.png' %}">
+    <link rel="apple-touch-icon" sizes="72x72" href="{% static 'images/logo-72.png' %}">
+    <link rel="apple-touch-icon" sizes="60x60" href="{% static 'images/logo-60.png' %}">
+    <link rel="apple-touch-icon" sizes="57x57" href="{% static 'images/logo-57.png' %}">
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileImage" content="{% static 'images/logo-144.png' %}">
+    <meta name="msapplication-TileColor" content="#dc2626">
+    <meta name="msapplication-config" content="{% static 'browserconfig.xml' %}">
+    
+    <title>{% block title %}MediConnect Mobile{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Mobile-specific styles -->
+    <style>
+        /* Mobile-optimized styles */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        input, textarea, select {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overscroll-behavior: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .mobile-container {
+            height: 100vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Touch-friendly buttons */
+        .btn-mobile {
+            min-height: 44px;
+            min-width: 44px;
+            padding: 12px 16px;
+            font-size: 16px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-mobile:active {
+            transform: scale(0.95);
+        }
+        
+        /* Loading spinner */
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #dc2626;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Status indicators */
+        .status-online {
+            background: #10b981;
+            color: white;
+        }
+        
+        .status-offline {
+            background: #ef4444;
+            color: white;
+        }
+        
+        /* Emergency colors */
+        .emergency-red {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+        
+        .emergency-orange {
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+        }
+        
+        /* Haptic feedback simulation */
+        .haptic-light:active {
+            animation: haptic-light 0.1s ease;
+        }
+        
+        .haptic-medium:active {
+            animation: haptic-medium 0.15s ease;
+        }
+        
+        .haptic-heavy:active {
+            animation: haptic-heavy 0.2s ease;
+        }
+        
+        @keyframes haptic-light {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.98); }
+        }
+        
+        @keyframes haptic-medium {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+        }
+        
+        @keyframes haptic-heavy {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.92); }
+        }
+        
+        /* Safe area handling for notched devices */
+        .safe-area-top {
+            padding-top: env(safe-area-inset-top);
+        }
+        
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .auto-dark {
+                background-color: #1f2937;
+                color: #f9fafb;
+            }
+        }
+        
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Loading overlay -->
+        <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+            <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+                <div class="loading-spinner"></div>
+                <span class="text-gray-700 font-medium">Loading...</span>
+            </div>
+        </div>
+        
+        <!-- Connection status -->
+        <div id="connectionStatus" class="fixed top-0 left-0 right-0 z-40 text-center py-2 text-sm font-medium" style="display: none;">
+            <span id="connectionText"></span>
+        </div>
+        
+        <!-- Main content -->
+        <main class="safe-area-top safe-area-bottom">
+            {% block content %}{% endblock %}
+        </main>
+        
+        <!-- Bottom navigation (if needed) -->
+        {% block bottom_nav %}
+        {% if is_mobile %}
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom">
+            <div class="grid grid-cols-4 h-16">
+                <a href="{% url 'ambulances:mobile_dashboard' %}" 
+                   class="flex flex-col items-center justify-center text-xs {% if request.resolver_match.url_name == 'mobile_dashboard' %}text-red-600{% else %}text-gray-600{% endif %}">
+                    <i class="fas fa-home text-lg mb-1"></i>
+                    <span>Home</span>
+                </a>
+                <a href="{% url 'ambulances:mobile_status_update' %}" 
+                   class="flex flex-col items-center justify-center text-xs {% if request.resolver_match.url_name == 'mobile_status_update' %}text-red-600{% else %}text-gray-600{% endif %}">
+                    <i class="fas fa-edit text-lg mb-1"></i>
+                    <span>Status</span>
+                </a>
+                <a href="{% url 'ambulances:mobile_navigation' %}" 
+                   class="flex flex-col items-center justify-center text-xs {% if request.resolver_match.url_name == 'mobile_navigation' %}text-red-600{% else %}text-gray-600{% endif %}">
+                    <i class="fas fa-route text-lg mb-1"></i>
+                    <span>Navigate</span>
+                </a>
+                <a href="{% url 'ambulances:mobile_protocols' %}" 
+                   class="flex flex-col items-center justify-center text-xs {% if request.resolver_match.url_name == 'mobile_protocols' %}text-red-600{% else %}text-gray-600{% endif %}">
+                    <i class="fas fa-book-medical text-lg mb-1"></i>
+                    <span>Protocols</span>
+                </a>
+            </div>
+        </nav>
+        {% endif %}
+        {% endblock %}
+    </div>
+    
+    <!-- Base JavaScript -->
+    <script>
+        // Global mobile utilities
+        const MobileApp = {
+            // Show loading overlay
+            showLoading: function(message = 'Loading...') {
+                const overlay = document.getElementById('loadingOverlay');
+                const text = overlay.querySelector('span');
+                text.textContent = message;
+                overlay.style.display = 'flex';
+            },
+            
+            // Hide loading overlay
+            hideLoading: function() {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            },
+            
+            // Show connection status
+            showConnectionStatus: function(isOnline) {
+                const status = document.getElementById('connectionStatus');
+                const text = document.getElementById('connectionText');
+                
+                if (isOnline) {
+                    status.className = 'fixed top-0 left-0 right-0 z-40 text-center py-2 text-sm font-medium status-online';
+                    text.textContent = 'Back online';
+                    status.style.display = 'block';
+                    setTimeout(() => {
+                        status.style.display = 'none';
+                    }, 3000);
+                } else {
+                    status.className = 'fixed top-0 left-0 right-0 z-40 text-center py-2 text-sm font-medium status-offline';
+                    text.textContent = 'You are offline';
+                    status.style.display = 'block';
+                }
+            },
+            
+            // Haptic feedback (if supported)
+            haptic: function(type = 'light') {
+                if ('vibrate' in navigator) {
+                    switch(type) {
+                        case 'light':
+                            navigator.vibrate(10);
+                            break;
+                        case 'medium':
+                            navigator.vibrate(20);
+                            break;
+                        case 'heavy':
+                            navigator.vibrate([30, 10, 30]);
+                            break;
+                    }
+                }
+            },
+            
+            // Show notification
+            showNotification: function(title, options = {}) {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    return new Notification(title, {
+                        icon: '/static/images/logo-192.png',
+                        badge: '/static/images/ambulance-icon.png',
+                        ...options
+                    });
+                }
+            },
+            
+            // Request notification permission
+            requestNotificationPermission: function() {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    return Notification.requestPermission();
+                }
+                return Promise.resolve(Notification.permission);
+            }
+        };
+        
+        // Connection monitoring
+        window.addEventListener('online', () => {
+            MobileApp.showConnectionStatus(true);
+        });
+        
+        window.addEventListener('offline', () => {
+            MobileApp.showConnectionStatus(false);
+        });
+        
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        // Prevent pull-to-refresh
+        document.body.addEventListener('touchstart', e => {
+            if (e.touches.length === 1 && e.touches[0].clientY <= 50) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        document.body.addEventListener('touchmove', e => {
+            if (e.touches.length === 1 && e.touches[0].clientY <= 50) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Request notification permission
+            MobileApp.requestNotificationPermission();
+            
+            // Add haptic feedback to buttons
+            document.querySelectorAll('.btn-mobile, .quick-action').forEach(button => {
+                button.addEventListener('touchstart', () => {
+                    MobileApp.haptic('light');
+                });
+            });
+            
+            // Add haptic feedback to emergency buttons
+            document.querySelectorAll('.emergency, .haptic-heavy').forEach(button => {
+                button.addEventListener('touchstart', () => {
+                    MobileApp.haptic('heavy');
+                });
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

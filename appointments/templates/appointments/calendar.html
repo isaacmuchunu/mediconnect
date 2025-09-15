@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Appointment Calendar{% endblock %}
+
+{% block extra_css %}
+<style>
+.calendar {
+    width: 100%;
+    border-collapse: collapse;
+}
+.calendar th, .calendar td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    vertical-align: top;
+    height: 120px;
+}
+.calendar th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    height: 40px;
+}
+.calendar-day {
+    position: relative;
+    cursor: pointer;
+}
+.calendar-day:hover {
+    background-color: #f8f9fa;
+}
+.calendar-day.other-month {
+    color: #ccc;
+    background-color: #f9f9f9;
+}
+.calendar-day.today {
+    background-color: #e3f2fd;
+    font-weight: bold;
+}
+.appointment-item {
+    background-color: #007bff;
+    color: white;
+    padding: 2px 4px;
+    margin: 1px 0;
+    border-radius: 3px;
+    font-size: 10px;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.appointment-item.completed {
+    background-color: #28a745;
+}
+.appointment-item.canceled {
+    background-color: #dc3545;
+}
+.appointment-item:hover {
+    opacity: 0.8;
+}
+.calendar-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0 text-gray-800">Appointment Calendar</h1>
+                <div>
+                    <a href="{% url 'appointments:dashboard' %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a href="{% url 'appointments:list' %}" class="btn btn-primary">
+                        <i class="fas fa-list"></i> List View
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Navigation -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="calendar-navigation">
+                <a href="?month={{ prev_month.month }}&year={{ prev_month.year }}" class="btn btn-outline-primary">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+                <h4 class="mb-0">{{ current_month|date:"F Y" }}</h4>
+                <a href="?month={{ next_month.month }}&year={{ next_month.year }}" class="btn btn-outline-primary">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+
+            <!-- Calendar Grid -->
+            <table class="calendar">
+                <thead>
+                    <tr>
+                        <th>Sunday</th>
+                        <th>Monday</th>
+                        <th>Tuesday</th>
+                        <th>Wednesday</th>
+                        <th>Thursday</th>
+                        <th>Friday</th>
+                        <th>Saturday</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for week in calendar_weeks %}
+                        <tr>
+                            {% for day in week %}
+                                <td class="calendar-day 
+                                    {% if day.is_other_month %}other-month{% endif %}
+                                    {% if day.is_today %}today{% endif %}"
+                                    data-date="{{ day.date|date:'Y-m-d' }}">
+                                    <div class="day-number">{{ day.date.day }}</div>
+                                    {% for appointment in day.appointments %}
+                                        <div class="appointment-item {{ appointment.status }}"
+                                             data-bs-toggle="tooltip"
+                                             title="{{ appointment.referral.patient.name }} - {{ appointment.appointment_date|date:'g:i A' }}"
+                                             onclick="showAppointmentDetails({{ appointment.id }})">
+                                            {{ appointment.appointment_date|date:"g:i A" }} - {{ appointment.referral.patient.name|truncatechars:15 }}
+                                        </div>
+                                    {% endfor %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Legend</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="appointment-item me-2" style="width: 20px; height: 20px;"></div>
+                        <span>Scheduled Appointment</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="appointment-item completed me-2" style="width: 20px; height: 20px;"></div>
+                        <span>Completed Appointment</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="appointment-item canceled me-2" style="width: 20px; height: 20px;"></div>
+                        <span>Canceled Appointment</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Stats</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>This Month:</strong> {{ monthly_stats.total }} appointments</p>
+                    <p class="mb-2"><strong>Scheduled:</strong> {{ monthly_stats.scheduled }}</p>
+                    <p class="mb-2"><strong>Completed:</strong> {{ monthly_stats.completed }}</p>
+                    <p class="mb-0"><strong>Canceled:</strong> {{ monthly_stats.canceled }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Details Modal -->
+<div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="appointmentModalLabel">Appointment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="appointmentDetails">
+                <!-- Appointment details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="viewAppointmentBtn" class="btn btn-primary">View Details</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Calendar day click handler
+    $('.calendar-day').click(function(e) {
+        if (!$(e.target).hasClass('appointment-item')) {
+            const date = $(this).data('date');
+            // You can add functionality to create new appointment on this date
+            console.log('Clicked on date:', date);
+        }
+    });
+});
+
+function showAppointmentDetails(appointmentId) {
+    // Fetch appointment details via AJAX
+    fetch(`/appointments/${appointmentId}/`)
+        .then(response => response.json())
+        .then(data => {
+            const modalBody = document.getElementById('appointmentDetails');
+            modalBody.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Patient Information</h6>
+                        <p><strong>Name:</strong> ${data.patient_name}</p>
+                        <p><strong>Phone:</strong> ${data.patient_phone}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Appointment Details</h6>
+                        <p><strong>Date:</strong> ${data.appointment_date}</p>
+                        <p><strong>Status:</strong> <span class="badge bg-${data.status_color}">${data.status}</span></p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <h6>Doctor Information</h6>
+                        <p><strong>Doctor:</strong> Dr. ${data.doctor_name}</p>
+                        <p><strong>Specialty:</strong> ${data.specialty}</p>
+                    </div>
+                </div>
+                ${data.notes ? `<div class="row"><div class="col-12"><h6>Notes</h6><p>${data.notes}</p></div></div>` : ''}
+            `;
+            
+            document.getElementById('viewAppointmentBtn').href = `/appointments/${appointmentId}/`;
+            
+            const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error fetching appointment details:', error);
+            alert('Error loading appointment details');
+        });
+}
+</script>
+{% endblock %}

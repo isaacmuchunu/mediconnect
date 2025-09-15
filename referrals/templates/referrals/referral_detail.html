@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Referral Details - {{ referral.patient.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .priority-high { color: #dc2626; }
+    .priority-medium { color: #f59e0b; }
+    .priority-low { color: #10b981; }
+    .status-draft { background-color: #f3f4f6; color: #374151; }
+    .status-sent { background-color: #dbeafe; color: #1e40af; }
+    .status-viewed { background-color: #fef3c7; color: #92400e; }
+    .status-accepted { background-color: #d1fae5; color: #065f46; }
+    .status-declined { background-color: #fee2e2; color: #991b1b; }
+    .status-completed { background-color: #e0e7ff; color: #3730a3; }
+    .timeline-item { border-left: 3px solid #e5e7eb; }
+    .timeline-item.active { border-left-color: #3b82f6; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                    Referral for {{ referral.patient.get_full_name }}
+                </h1>
+                <div class="flex items-center space-x-4">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium status-{{ referral.status }}">
+                        {{ referral.get_status_display }}
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium priority-{{ referral.priority }}">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        {{ referral.get_priority_display }} Priority
+                    </span>
+                    {% if referral.ambulance_required %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        <i class="fas fa-ambulance mr-1"></i>
+                        Ambulance Required
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                {% if referral.status == 'sent' and user == referral.target_doctor.user %}
+                <a href="{% url 'referrals:accept_referral' referral.id %}" 
+                   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                    <i class="fas fa-check mr-1"></i> Accept
+                </a>
+                <a href="{% url 'referrals:decline_referral' referral.id %}" 
+                   class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                    <i class="fas fa-times mr-1"></i> Decline
+                </a>
+                {% endif %}
+                {% if referral.status == 'accepted' and user == referral.target_doctor.user %}
+                <a href="{% url 'referrals:complete_referral' referral.id %}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                    <i class="fas fa-check-circle mr-1"></i> Mark Complete
+                </a>
+                {% endif %}
+                <a href="{% url 'referrals:list_referrals' %}" 
+                   class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Patient Information -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-user mr-2 text-blue-600"></i>
+                    Patient Information
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ referral.patient.get_full_name }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ referral.patient.date_of_birth|date:"F d, Y" }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">NHS Number</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ referral.patient.nhs_number }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Phone</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ referral.patient.phone_number }}</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Address</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ referral.patient.address }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral Details -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-file-medical mr-2 text-blue-600"></i>
+                    Referral Details
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Specialty</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ referral.specialty }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Reason for Referral</label>
+                        <p class="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{{ referral.reason }}</p>
+                    </div>
+                    {% if referral.notes %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Clinical Notes</label>
+                        <p class="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{{ referral.notes }}</p>
+                    </div>
+                    {% endif %}
+                    {% if referral.response_notes %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Response Notes</label>
+                        <p class="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{{ referral.response_notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Attachments -->
+            {% if referral.attachments %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-paperclip mr-2 text-blue-600"></i>
+                    Attachments
+                </h2>
+                <div class="space-y-2">
+                    <a href="{{ referral.attachments.url }}" target="_blank" 
+                       class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="fas fa-download mr-2"></i>
+                        Download Attachment
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Doctor Information -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-user-md mr-2 text-blue-600"></i>
+                    Doctor Information
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Referring Doctor</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ referral.referring_doctor.get_full_name }}</p>
+                        <p class="text-xs text-gray-500">{{ referral.referring_doctor.specialty }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Target Doctor</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ referral.target_doctor.get_full_name }}</p>
+                        <p class="text-xs text-gray-500">{{ referral.target_doctor.specialty }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-clock mr-2 text-blue-600"></i>
+                    Timeline
+                </h2>
+                <div class="space-y-3">
+                    <div class="timeline-item pl-4 pb-3 active">
+                        <div class="flex items-center">
+                            <i class="fas fa-plus-circle text-blue-600 mr-2"></i>
+                            <span class="text-sm font-medium">Created</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">{{ referral.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    {% if referral.status != 'draft' %}
+                    <div class="timeline-item pl-4 pb-3 active">
+                        <div class="flex items-center">
+                            <i class="fas fa-paper-plane text-blue-600 mr-2"></i>
+                            <span class="text-sm font-medium">Sent</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">{{ referral.updated_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    {% endif %}
+                    {% if referral.viewed_at %}
+                    <div class="timeline-item pl-4 pb-3 active">
+                        <div class="flex items-center">
+                            <i class="fas fa-eye text-yellow-600 mr-2"></i>
+                            <span class="text-sm font-medium">Viewed</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">{{ referral.viewed_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    {% endif %}
+                    {% if referral.responded_at %}
+                    <div class="timeline-item pl-4 pb-3 active">
+                        <div class="flex items-center">
+                            {% if referral.status == 'accepted' %}
+                            <i class="fas fa-check text-green-600 mr-2"></i>
+                            {% elif referral.status == 'declined' %}
+                            <i class="fas fa-times text-red-600 mr-2"></i>
+                            {% else %}
+                            <i class="fas fa-check-circle text-blue-600 mr-2"></i>
+                            {% endif %}
+                            <span class="text-sm font-medium">{{ referral.get_status_display }}</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">{{ referral.responded_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-bolt mr-2 text-blue-600"></i>
+                    Quick Actions
+                </h2>
+                <div class="space-y-2">
+                    <a href="mailto:{{ referral.target_doctor.user.email }}?subject=Referral: {{ referral.patient.get_full_name }}" 
+                       class="w-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="fas fa-envelope mr-2"></i>
+                        Email Doctor
+                    </a>
+                    <a href="tel:{{ referral.target_doctor.phone_number }}" 
+                       class="w-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="fas fa-phone mr-2"></i>
+                        Call Doctor
+                    </a>
+                    <button onclick="window.print()" 
+                            class="w-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="fas fa-print mr-2"></i>
+                        Print Referral
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Response Modal -->
+{% if referral.status == 'sent' and user == referral.target_doctor.user %}
+<div id="responseModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Respond to Referral</h3>
+            <form method="post" action="{% url 'referrals:accept_referral' referral.id %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="response_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                        Response Notes
+                    </label>
+                    <textarea id="response_notes" name="response_notes" rows="4" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Add your response notes..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal()" 
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                        Cancel
+                    </button>
+                    <button type="submit" name="action" value="accept" 
+                            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                        Accept
+                    </button>
+                    <button type="submit" name="action" value="decline" 
+                            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                        Decline
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function openModal() {
+    document.getElementById('responseModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('responseModal').classList.add('hidden');
+}
+
+// Auto-refresh every 30 seconds for status updates
+setInterval(function() {
+    if (document.visibilityState === 'visible') {
+        location.reload();
+    }
+}, 30000);
+</script>
+{% endblock %}

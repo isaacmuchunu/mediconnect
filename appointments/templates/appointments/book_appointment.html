@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Appointment{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-calendar-plus"></i> Book Appointment
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Referral Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Patient Information</h6>
+                            <p class="mb-1"><strong>Name:</strong> {{ referral.patient.name }}</p>
+                            <p class="mb-1"><strong>Phone:</strong> {{ referral.patient.phone }}</p>
+                            <p class="mb-1"><strong>Email:</strong> {{ referral.patient.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Referral Details</h6>
+                            <p class="mb-1"><strong>Referring Doctor:</strong> Dr. {{ referral.doctor.name }}</p>
+                            <p class="mb-1"><strong>Specialty:</strong> {{ referral.specialty }}</p>
+                            <p class="mb-1"><strong>Priority:</strong> 
+                                <span class="badge 
+                                    {% if referral.priority == 'urgent' %}bg-danger
+                                    {% elif referral.priority == 'high' %}bg-warning
+                                    {% elif referral.priority == 'medium' %}bg-info
+                                    {% else %}bg-secondary
+                                    {% endif %}">
+                                    {{ referral.get_priority_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Appointment Form -->
+                    <form method="post" id="appointmentForm">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <h6>Please correct the following errors:</h6>
+                                <ul class="mb-0">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li>{{ field|title }}: {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.date.id_for_label }}" class="form-label">
+                                    <i class="fas fa-calendar"></i> Appointment Date *
+                                </label>
+                                {{ form.date }}
+                                {% if form.date.help_text %}
+                                    <small class="form-text text-muted">{{ form.date.help_text }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.time.id_for_label }}" class="form-label">
+                                    <i class="fas fa-clock"></i> Appointment Time *
+                                </label>
+                                {{ form.time }}
+                                {% if form.time.help_text %}
+                                    <small class="form-text text-muted">{{ form.time.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                <i class="fas fa-sticky-note"></i> Additional Notes
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.help_text %}
+                                <small class="form-text text-muted">{{ form.notes.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Available Time Slots -->
+                        <div class="mb-4">
+                            <h6 class="text-primary">Suggested Available Time Slots</h6>
+                            <div class="row" id="timeSlots">
+                                <div class="col-md-3 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm time-slot" data-time="09:00">9:00 AM</button>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm time-slot" data-time="10:00">10:00 AM</button>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm time-slot" data-time="11:00">11:00 AM</button>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm time-slot" data-time="14:00">2:00 PM</button>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm time-slot" data-time="15:00">3:00 PM</button>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm time-slot" data-time="16:00">4:00 PM</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'referrals:detail' referral.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Referral
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-calendar-check"></i> Book Appointment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    $('#id_date').attr('min', today);
+    
+    // Time slot selection
+    $('.time-slot').click(function() {
+        $('.time-slot').removeClass('btn-primary').addClass('btn-outline-primary');
+        $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+        $('#id_time').val($(this).data('time'));
+    });
+    
+    // Form validation
+    $('#appointmentForm').submit(function(e) {
+        const date = $('#id_date').val();
+        const time = $('#id_time').val();
+        
+        if (!date) {
+            e.preventDefault();
+            alert('Please select an appointment date.');
+            return false;
+        }
+        
+        if (!time) {
+            e.preventDefault();
+            alert('Please select an appointment time.');
+            return false;
+        }
+        
+        // Check if selected date is in the past
+        const selectedDate = new Date(date);
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < currentDate) {
+            e.preventDefault();
+            alert('Please select a future date for the appointment.');
+            return false;
+        }
+        
+        return true;
+    });
+    
+    // Auto-populate time if priority is urgent
+    {% if referral.priority == 'urgent' %}
+        // Suggest earliest available time for urgent referrals
+        $('.time-slot').first().click();
+    {% endif %}
+});
+</script>
+{% endblock %}

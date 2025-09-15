@@ -1,0 +1,442 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics Dashboard - MediConnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-dashboard {
+        background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+    }
+    .metric-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-left: 4px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    .metric-card.primary {
+        border-left-color: #3b82f6;
+    }
+    .metric-card.success {
+        border-left-color: #10b981;
+    }
+    .metric-card.warning {
+        border-left-color: #f59e0b;
+    }
+    .metric-card.danger {
+        border-left-color: #ef4444;
+    }
+    .widget-container {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    .widget-container:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    .kpi-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .kpi-target { background: #10b981; }
+    .kpi-warning { background: #f59e0b; }
+    .kpi-critical { background: #ef4444; }
+    .time-range-selector {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 4px;
+    }
+    .time-range-btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        color: rgba(255, 255, 255, 0.8);
+        transition: all 0.2s ease;
+    }
+    .time-range-btn.active {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    .loading-spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .real-time-indicator {
+        display: inline-flex;
+        align-items: center;
+        background: #10b981;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .real-time-indicator::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        margin-right: 6px;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="analytics-dashboard text-white p-6 shadow-lg">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="flex items-center justify-center w-12 h-12 bg-white bg-opacity-20 rounded-lg mr-4">
+                        <i class="fas fa-chart-line text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold">Analytics Dashboard</h1>
+                        <p class="text-blue-100">Real-time performance monitoring and insights</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="real-time-indicator">
+                        Live Data
+                    </div>
+                    <div class="time-range-selector">
+                        <button class="time-range-btn {% if time_range == '1h' %}active{% endif %}" 
+                                onclick="changeTimeRange('1h')">1H</button>
+                        <button class="time-range-btn {% if time_range == '24h' %}active{% endif %}" 
+                                onclick="changeTimeRange('24h')">24H</button>
+                        <button class="time-range-btn {% if time_range == '7d' %}active{% endif %}" 
+                                onclick="changeTimeRange('7d')">7D</button>
+                        <button class="time-range-btn {% if time_range == '30d' %}active{% endif %}" 
+                                onclick="changeTimeRange('30d')">30D</button>
+                    </div>
+                    <button onclick="refreshDashboard()" 
+                            class="px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-colors">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <!-- Key Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="metric-card primary p-6 rounded-lg shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-2xl font-bold text-gray-900">{{ key_metrics.total_dispatches }}</div>
+                        <div class="text-sm text-gray-600">Total Dispatches</div>
+                        <div class="text-xs text-gray-500 mt-1">Last {{ time_range }}</div>
+                    </div>
+                    <div class="text-3xl text-blue-500">
+                        <i class="fas fa-ambulance"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card success p-6 rounded-lg shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-2xl font-bold text-gray-900">{{ key_metrics.active_ambulances }}</div>
+                        <div class="text-sm text-gray-600">Active Ambulances</div>
+                        <div class="text-xs text-gray-500 mt-1">Currently in service</div>
+                    </div>
+                    <div class="text-3xl text-green-500">
+                        <i class="fas fa-truck-medical"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card warning p-6 rounded-lg shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-2xl font-bold text-gray-900">{{ key_metrics.avg_response_time }}</div>
+                        <div class="text-sm text-gray-600">Avg Response Time</div>
+                        <div class="text-xs text-gray-500 mt-1">Minutes</div>
+                    </div>
+                    <div class="text-3xl text-yellow-500">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card danger p-6 rounded-lg shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-2xl font-bold text-gray-900">{{ key_metrics.hospitals_at_capacity }}</div>
+                        <div class="text-sm text-gray-600">Hospitals at Capacity</div>
+                        <div class="text-xs text-gray-500 mt-1">Critical/Full status</div>
+                    </div>
+                    <div class="text-3xl text-red-500">
+                        <i class="fas fa-hospital"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Status -->
+        {% if kpi_status %}
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Key Performance Indicators</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {% for kpi_type, kpi in kpi_status.items %}
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                        <div class="flex items-center">
+                            <span class="kpi-indicator kpi-{{ kpi.status }}"></span>
+                            <span class="font-medium text-gray-900">{{ kpi.name }}</span>
+                        </div>
+                        <div class="text-sm text-gray-600 mt-1">
+                            {{ kpi.current_value }} / {{ kpi.target_value }} {{ kpi.unit }}
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-2 py-1 bg-{{ kpi.status }}-100 text-{{ kpi.status }}-800 text-xs font-medium rounded-full">
+                            {{ kpi.status|title }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Dashboard Widgets -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+            {% for widget in widgets %}
+            <div class="widget-container p-6 {% if widget.size == 'large' %}lg:col-span-2{% elif widget.size == 'wide' %}xl:col-span-2{% elif widget.size == 'extra_large' %}lg:col-span-2 xl:col-span-3{% endif %}">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-lg font-semibold text-gray-900">{{ widget.title }}</h4>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-gray-500">
+                            Updates every {{ widget.refresh_interval }}s
+                        </span>
+                        <button onclick="refreshWidget('{{ widget.id }}')" 
+                                class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-sync-alt text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="chart-container" id="widget-{{ widget.id }}">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Recent Performance Metrics -->
+        {% if recent_metrics %}
+        <div class="bg-white rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Recent Performance Metrics</h3>
+                    <a href="{% url 'analytics:performance_metrics' %}" 
+                       class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        View All →
+                    </a>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Metric
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Value
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Ambulance
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Date
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for metric in recent_metrics %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ metric.metric_name }}
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        {{ metric.get_metric_type_display }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">
+                                        {{ metric.value }} {{ metric.unit }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if metric.ambulance %}
+                                        <div class="text-sm text-gray-900">
+                                            {{ metric.ambulance.license_plate }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-gray-400">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ metric.measurement_date|date:"M d, Y" }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let charts = {};
+let refreshInterval;
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadAllWidgets();
+    startAutoRefresh();
+});
+
+function loadAllWidgets() {
+    {% for widget in widgets %}
+    loadWidget('{{ widget.id }}');
+    {% endfor %}
+}
+
+function loadWidget(widgetId) {
+    const container = document.getElementById(`widget-${widgetId}`);
+    if (!container) return;
+    
+    // Show loading spinner
+    container.innerHTML = '<div class="loading-spinner"></div>';
+    
+    // Fetch widget data
+    fetch(`/analytics/api/widget/${widgetId}/data/?range={{ time_range }}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                renderWidget(widgetId, data.data);
+            } else {
+                container.innerHTML = '<div class="text-center text-gray-500 py-8">Error loading widget data</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Widget loading error:', error);
+            container.innerHTML = '<div class="text-center text-gray-500 py-8">Failed to load widget</div>';
+        });
+}
+
+function renderWidget(widgetId, data) {
+    const container = document.getElementById(`widget-${widgetId}`);
+    
+    // Create canvas for chart
+    container.innerHTML = '<canvas id="chart-' + widgetId + '"></canvas>';
+    
+    const canvas = document.getElementById(`chart-${widgetId}`);
+    const ctx = canvas.getContext('2d');
+    
+    // Destroy existing chart if it exists
+    if (charts[widgetId]) {
+        charts[widgetId].destroy();
+    }
+    
+    // Create new chart
+    charts[widgetId] = new Chart(ctx, {
+        type: 'line', // Default type, can be overridden
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function refreshWidget(widgetId) {
+    loadWidget(widgetId);
+}
+
+function refreshDashboard() {
+    location.reload();
+}
+
+function changeTimeRange(range) {
+    const url = new URL(window.location);
+    url.searchParams.set('range', range);
+    window.location.href = url.toString();
+}
+
+function startAutoRefresh() {
+    // Refresh every 5 minutes
+    refreshInterval = setInterval(() => {
+        loadAllWidgets();
+    }, 300000);
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+    
+    // Destroy all charts
+    Object.values(charts).forEach(chart => {
+        if (chart) chart.destroy();
+    });
+});
+
+// Real-time updates via WebSocket (placeholder)
+function initializeWebSocket() {
+    // TODO: Implement WebSocket connection for real-time updates
+    console.log('WebSocket connection would be initialized here');
+}
+</script>
+{% endblock %}

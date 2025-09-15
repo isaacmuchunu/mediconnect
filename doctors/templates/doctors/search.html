@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Find a Doctor - Hospital E-Referral{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl font-extrabold text-white sm:text-5xl">
+                    Find the Right Doctor
+                </h1>
+                <p class="mt-4 text-xl text-blue-100">
+                    Search our network of verified healthcare professionals
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Section -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <form method="get" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Search Query -->
+                    <div class="lg:col-span-2">
+                        <label for="q" class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <div class="relative">
+                            <input type="text" 
+                                   id="q" 
+                                   name="q" 
+                                   value="{{ request.GET.q }}"
+                                   placeholder="Doctor name, specialty, or hospital"
+                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Specialty Filter -->
+                    <div>
+                        <label for="specialty" class="block text-sm font-medium text-gray-700 mb-2">Specialty</label>
+                        <select id="specialty" 
+                                name="specialty" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">All Specialties</option>
+                            {% for specialty in specialties %}
+                                <option value="{{ specialty.id }}" {% if request.GET.specialty == specialty.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ specialty.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Location Filter -->
+                    <div>
+                        <label for="location" class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <input type="text" 
+                               id="location" 
+                               name="location" 
+                               value="{{ request.GET.location }}"
+                               placeholder="City or ZIP code"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Advanced Filters -->
+                <div class="border-t pt-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">Advanced Filters</h3>
+                        <button type="button" 
+                                id="toggle-filters" 
+                                class="text-blue-600 hover:text-blue-500 text-sm font-medium">
+                            Show Filters
+                        </button>
+                    </div>
+                    
+                    <div id="advanced-filters" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Hospital Filter -->
+                        <div>
+                            <label for="hospital" class="block text-sm font-medium text-gray-700 mb-2">Hospital</label>
+                            <select id="hospital" 
+                                    name="hospital" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">All Hospitals</option>
+                                {% for hospital in hospitals %}
+                                    <option value="{{ hospital.id }}" {% if request.GET.hospital == hospital.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ hospital.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Experience Filter -->
+                        <div>
+                            <label for="experience" class="block text-sm font-medium text-gray-700 mb-2">Min. Experience</label>
+                            <select id="experience" 
+                                    name="experience" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Any Experience</option>
+                                <option value="5" {% if request.GET.experience == "5" %}selected{% endif %}>5+ years</option>
+                                <option value="10" {% if request.GET.experience == "10" %}selected{% endif %}>10+ years</option>
+                                <option value="15" {% if request.GET.experience == "15" %}selected{% endif %}>15+ years</option>
+                                <option value="20" {% if request.GET.experience == "20" %}selected{% endif %}>20+ years</option>
+                            </select>
+                        </div>
+
+                        <!-- Rating Filter -->
+                        <div>
+                            <label for="rating" class="block text-sm font-medium text-gray-700 mb-2">Min. Rating</label>
+                            <select id="rating" 
+                                    name="rating" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Any Rating</option>
+                                <option value="3" {% if request.GET.rating == "3" %}selected{% endif %}>3+ stars</option>
+                                <option value="4" {% if request.GET.rating == "4" %}selected{% endif %}>4+ stars</option>
+                                <option value="4.5" {% if request.GET.rating == "4.5" %}selected{% endif %}>4.5+ stars</option>
+                            </select>
+                        </div>
+
+                        <!-- Availability Filter -->
+                        <div>
+                            <label for="available" class="block text-sm font-medium text-gray-700 mb-2">Availability</label>
+                            <div class="flex items-center">
+                                <input type="checkbox" 
+                                       id="available" 
+                                       name="available" 
+                                       value="true"
+                                       {% if request.GET.available %}checked{% endif %}
+                                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="available" class="ml-2 text-sm text-gray-700">Available now</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Button -->
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-600">
+                        {% if doctors %}
+                            Showing {{ doctors|length }} of {{ total_count }} doctors
+                        {% endif %}
+                    </div>
+                    <div class="flex space-x-3">
+                        <a href="{% url 'doctors:doctor_search' %}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                            Clear
+                        </a>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Filters Sidebar (Mobile Hidden) -->
+            <div class="hidden lg:block">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Sort By</h3>
+                    <div class="space-y-2">
+                        <a href="?{{ request.GET.urlencode }}&sort=name" 
+                           class="block text-sm text-gray-600 hover:text-blue-600 {% if request.GET.sort == 'name' %}text-blue-600 font-medium{% endif %}">
+                            Name (A-Z)
+                        </a>
+                        <a href="?{{ request.GET.urlencode }}&sort=rating" 
+                           class="block text-sm text-gray-600 hover:text-blue-600 {% if request.GET.sort == 'rating' %}text-blue-600 font-medium{% endif %}">
+                            Highest Rated
+                        </a>
+                        <a href="?{{ request.GET.urlencode }}&sort=experience" 
+                           class="block text-sm text-gray-600 hover:text-blue-600 {% if request.GET.sort == 'experience' %}text-blue-600 font-medium{% endif %}">
+                            Most Experienced
+                        </a>
+                        <a href="?{{ request.GET.urlencode }}&sort=reviews" 
+                           class="block text-sm text-gray-600 hover:text-blue-600 {% if request.GET.sort == 'reviews' %}text-blue-600 font-medium{% endif %}">
+                            Most Reviewed
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div class="lg:col-span-3">
+                {% if doctors %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for doctor in doctors %}
+                        <div class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
+                            <div class="p-6">
+                                <div class="flex items-start space-x-4">
+                                    <div class="flex-shrink-0">
+                                        {% if doctor.profile_picture %}
+                                            <img class="h-16 w-16 rounded-full" src="{{ doctor.profile_picture.url }}" alt="{{ doctor.get_full_name }}">
+                                        {% else %}
+                                            <div class="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center">
+                                                <svg class="h-8 w-8 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                                </svg>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between">
+                                            <h3 class="text-lg font-medium text-gray-900 truncate">
+                                                <a href="{% url 'doctors:profile_detail' doctor.id %}" class="hover:text-blue-600">
+                                                    {{ doctor.get_full_name }}
+                                                </a>
+                                            </h3>
+                                            {% if doctor.is_verified %}
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    Verified
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-sm text-blue-600 font-medium">{{ doctor.primary_specialty.name }}</p>
+                                        {% if doctor.primary_hospital %}
+                                            <p class="text-sm text-gray-500">{{ doctor.primary_hospital.name }}</p>
+                                        {% endif %}
+                                        <div class="flex items-center mt-2">
+                                            <div class="flex items-center">
+                                                {% for i in "12345" %}
+                                                    <svg class="h-4 w-4 {% if forloop.counter <= doctor.average_rating %}text-yellow-400{% else %}text-gray-300{% endif %}" 
+                                                         fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                    </svg>
+                                                {% endfor %}
+                                                <span class="ml-1 text-sm text-gray-600">{{ doctor.average_rating|floatformat:1 }}</span>
+                                                <span class="ml-1 text-sm text-gray-500">({{ doctor.total_reviews }})</span>
+                                            </div>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mt-1">{{ doctor.years_of_experience }} years experience</p>
+                                        {% if doctor.bio %}
+                                            <p class="text-sm text-gray-600 mt-2 line-clamp-2">{{ doctor.bio|truncatechars:100 }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex space-x-3">
+                                    <a href="{% url 'doctors:profile_detail' doctor.id %}" 
+                                       class="flex-1 bg-blue-600 text-white text-center py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700">
+                                        View Profile
+                                    </a>
+                                    {% if doctor.is_available %}
+                                        <button class="flex-1 bg-green-600 text-white text-center py-2 px-4 rounded-lg text-sm font-medium hover:bg-green-700">
+                                            Send Referral
+                                        </button>
+                                    {% else %}
+                                        <button class="flex-1 bg-gray-400 text-white text-center py-2 px-4 rounded-lg text-sm font-medium cursor-not-allowed" disabled>
+                                            Unavailable
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <div class="mt-8 flex justify-center">
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            {% if page_obj.has_previous %}
+                                <a href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}" 
+                                   class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    Previous
+                                </a>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                        {{ num }}
+                                    </span>
+                                {% else %}
+                                    <a href="?{{ request.GET.urlencode }}&page={{ num }}" 
+                                       class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                        {{ num }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <a href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}" 
+                                   class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    Next
+                                </a>
+                            {% endif %}
+                        </nav>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-12">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No doctors found</h3>
+                        <p class="mt-1 text-sm text-gray-500">Try adjusting your search criteria or filters.</p>
+                        <div class="mt-6">
+                            <a href="{% url 'doctors:doctor_search' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-medical-blue hover:bg-blue-700">
+                                Clear Search
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Toggle advanced filters
+document.getElementById('toggle-filters').addEventListener('click', function() {
+    const filters = document.getElementById('advanced-filters');
+    const button = this;
+    
+    if (filters.classList.contains('hidden')) {
+        filters.classList.remove('hidden');
+        button.textContent = 'Hide Filters';
+    } else {
+        filters.classList.add('hidden');
+        button.textContent = 'Show Filters';
+    }
+});
+</script>
+{% endblock %}

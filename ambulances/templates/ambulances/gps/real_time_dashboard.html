@@ -1,0 +1,633 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Real-time GPS Tracking - MediConnect{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<style>
+    .tracking-dashboard {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    }
+    .ambulance-marker {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+        border: 3px solid white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        position: relative;
+    }
+    .ambulance-available {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    }
+    .ambulance-dispatched {
+        background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+        animation: pulse 2s infinite;
+    }
+    .ambulance-busy {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    }
+    .ambulance-maintenance {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    }
+    .emergency-lights {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        width: 12px;
+        height: 12px;
+        background: #ef4444;
+        border-radius: 50%;
+        animation: blink 0.5s infinite;
+    }
+    .siren-active {
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        width: 12px;
+        height: 12px;
+        background: #3b82f6;
+        border-radius: 50%;
+        animation: blink 0.3s infinite;
+    }
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    #tracking-map {
+        height: 600px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+    .stats-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-left: 4px solid #3b82f6;
+        transition: all 0.3s ease;
+    }
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    .dispatch-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-left: 4px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .dispatch-card.critical {
+        border-left-color: #dc2626;
+    }
+    .dispatch-card.emergency {
+        border-left-color: #ea580c;
+    }
+    .dispatch-card.urgent {
+        border-left-color: #d97706;
+    }
+    .dispatch-card.routine {
+        border-left-color: #059669;
+    }
+    .traffic-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+    .traffic-light { background: #10b981; }
+    .traffic-moderate { background: #f59e0b; }
+    .traffic-heavy { background: #ef4444; }
+    .traffic-severe { background: #7c2d12; }
+    .traffic-blocked { background: #1f2937; }
+    .route-line {
+        stroke: #3b82f6;
+        stroke-width: 4;
+        stroke-opacity: 0.8;
+        fill: none;
+    }
+    .eta-badge {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .speed-indicator {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="tracking-dashboard text-white p-6 shadow-lg">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="flex items-center justify-center w-12 h-12 bg-white bg-opacity-20 rounded-lg mr-4">
+                        <i class="fas fa-satellite-dish text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold">Real-time GPS Tracking</h1>
+                        <p class="text-blue-100">Live ambulance tracking and route optimization</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold">{{ stats.total_ambulances }}</div>
+                        <div class="text-sm text-blue-100">Total Units</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold">{{ stats.available_ambulances }}</div>
+                        <div class="text-sm text-blue-100">Available</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold">{{ stats.active_dispatches }}</div>
+                        <div class="text-sm text-blue-100">Active</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold">{{ stats.avg_response_time|floatformat:1 }}m</div>
+                        <div class="text-sm text-blue-100">Avg Response</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <!-- Quick Actions -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'ambulances:emergency_dispatch_center' %}" 
+                       class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        <i class="fas fa-broadcast-tower mr-2"></i>Dispatch Center
+                    </a>
+                    <a href="{% url 'ambulances:emergency_call_create' %}" 
+                       class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-phone mr-2"></i>New Emergency Call
+                    </a>
+                    <button onclick="toggleTrafficLayer()" 
+                            class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
+                        <i class="fas fa-traffic-light mr-2"></i>Traffic Layer
+                    </button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span>Live Tracking Active</span>
+                    </div>
+                    <button onclick="refreshTracking()" 
+                            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Tracking Interface -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Live Map -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Live Fleet Map</h3>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-2 text-sm">
+                                    <div class="ambulance-marker ambulance-available" style="width: 20px; height: 20px; font-size: 10px;">
+                                        <i class="fas fa-ambulance"></i>
+                                    </div>
+                                    <span>Available</span>
+                                </div>
+                                <div class="flex items-center space-x-2 text-sm">
+                                    <div class="ambulance-marker ambulance-dispatched" style="width: 20px; height: 20px; font-size: 10px;">
+                                        <i class="fas fa-ambulance"></i>
+                                    </div>
+                                    <span>Dispatched</span>
+                                </div>
+                                <div class="flex items-center space-x-2 text-sm">
+                                    <div class="ambulance-marker ambulance-busy" style="width: 20px; height: 20px; font-size: 10px;">
+                                        <i class="fas fa-ambulance"></i>
+                                    </div>
+                                    <span>Busy</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div id="tracking-map"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Panel -->
+            <div class="space-y-6">
+                <!-- Active Dispatches -->
+                <div class="bg-white rounded-lg shadow-sm">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Active Dispatches</h3>
+                    </div>
+                    <div class="p-6">
+                        {% if active_dispatches %}
+                            <div class="space-y-4 max-h-64 overflow-y-auto">
+                                {% for dispatch in active_dispatches %}
+                                <div class="dispatch-card {{ dispatch.priority }} p-3 rounded-lg border border-gray-200">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-medium text-gray-900">{{ dispatch.ambulance.license_plate }}</span>
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                                            {{ dispatch.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 mb-2">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>
+                                        {{ dispatch.pickup_address|truncatechars:25 }}
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="text-gray-500">
+                                            <i class="fas fa-clock mr-1"></i>
+                                            {{ dispatch.created_at|timesince }} ago
+                                        </span>
+                                        {% if dispatch.ambulance.gps_tracking_enhanced.first %}
+                                            {% with latest_gps=dispatch.ambulance.gps_tracking_enhanced.first %}
+                                                {% if latest_gps.eta_minutes %}
+                                                    <span class="eta-badge">
+                                                        ETA: {{ latest_gps.eta_minutes }}m
+                                                    </span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-ambulance text-gray-400 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-600">No active dispatches</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Pending Emergency Calls -->
+                <div class="bg-white rounded-lg shadow-sm">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Pending Calls</h3>
+                    </div>
+                    <div class="p-6">
+                        {% if pending_calls %}
+                            <div class="space-y-3 max-h-48 overflow-y-auto">
+                                {% for call in pending_calls %}
+                                <div class="p-3 border border-gray-200 rounded-lg">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-medium text-gray-900">{{ call.call_number }}</span>
+                                        <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+                                            {{ call.get_priority_display }}
+                                        </span>
+                                    </div>
+                                    <div class="text-sm text-gray-600">
+                                        {{ call.chief_complaint|truncatechars:30 }}
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        {{ call.received_at|timesince }} ago
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-check-circle text-green-500 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-600">No pending calls</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Traffic Conditions -->
+                <div class="bg-white rounded-lg shadow-sm">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Traffic Conditions</h3>
+                    </div>
+                    <div class="p-6">
+                        {% if active_traffic %}
+                            <div class="space-y-3 max-h-48 overflow-y-auto">
+                                {% for traffic in active_traffic %}
+                                <div class="p-3 border border-gray-200 rounded-lg">
+                                    <div class="flex items-center mb-2">
+                                        <span class="traffic-indicator traffic-{{ traffic.severity }}"></span>
+                                        <span class="font-medium text-gray-900">{{ traffic.get_condition_type_display }}</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 mb-1">
+                                        {{ traffic.description|truncatechars:40 }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        Delay: {{ traffic.delay_minutes }}min
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-road text-green-500 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-600">No traffic issues</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fleet Status Overview -->
+        <div class="mt-6">
+            <div class="bg-white rounded-lg shadow-sm">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Fleet Status Overview</h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {% for ambulance in active_ambulances %}
+                        <div class="stats-card p-4 rounded-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center">
+                                    <div class="ambulance-marker ambulance-{{ ambulance.status }}" style="width: 30px; height: 30px; font-size: 12px;">
+                                        <i class="fas fa-ambulance"></i>
+                                        {% if ambulance.gps_tracking_enhanced.first %}
+                                            {% with latest_gps=ambulance.gps_tracking_enhanced.first %}
+                                                {% if latest_gps.emergency_lights %}
+                                                    <div class="emergency-lights"></div>
+                                                {% endif %}
+                                                {% if latest_gps.siren_active %}
+                                                    <div class="siren-active"></div>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="font-medium text-gray-900">{{ ambulance.license_plate }}</div>
+                                        <div class="text-sm text-gray-500">{{ ambulance.ambulance_type.name }}</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    {% if ambulance.gps_tracking_enhanced.first %}
+                                        {% with latest_gps=ambulance.gps_tracking_enhanced.first %}
+                                            <div class="speed-indicator">
+                                                {{ latest_gps.speed_kmh|floatformat:0 }} km/h
+                                            </div>
+                                            {% if latest_gps.eta_minutes %}
+                                                <div class="eta-badge mt-1">
+                                                    ETA: {{ latest_gps.eta_minutes }}m
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                {% if ambulance.last_gps_update %}
+                                    Last update: {{ ambulance.last_gps_update|timesince }} ago
+                                {% else %}
+                                    No GPS data
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+let map;
+let ambulanceMarkers = {};
+let trafficLayer = null;
+let routeLayer = null;
+
+// Initialize map
+function initTrackingMap() {
+    map = L.map('tracking-map').setView([40.7128, -74.0060], 11);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Add ambulance markers
+    {% for ambulance in active_ambulances %}
+        {% if ambulance.current_latitude and ambulance.current_longitude %}
+            addAmbulanceMarker(
+                '{{ ambulance.id }}',
+                {{ ambulance.current_latitude }},
+                {{ ambulance.current_longitude }},
+                '{{ ambulance.license_plate }}',
+                '{{ ambulance.status }}',
+                {% if ambulance.gps_tracking_enhanced.first %}
+                    {
+                        speed: {{ ambulance.gps_tracking_enhanced.first.speed_kmh|default:0 }},
+                        emergency_lights: {{ ambulance.gps_tracking_enhanced.first.emergency_lights|yesno:"true,false" }},
+                        siren_active: {{ ambulance.gps_tracking_enhanced.first.siren_active|yesno:"true,false" }},
+                        eta_minutes: {{ ambulance.gps_tracking_enhanced.first.eta_minutes|default:"null" }}
+                    }
+                {% else %}
+                    {}
+                {% endif %}
+            );
+        {% endif %}
+    {% endfor %}
+    
+    // Add emergency call markers
+    {% for call in pending_calls %}
+        {% if call.incident_location %}
+            addEmergencyCallMarker(
+                '{{ call.id }}',
+                {{ call.incident_location.y }},
+                {{ call.incident_location.x }},
+                '{{ call.call_number }}',
+                '{{ call.priority }}'
+            );
+        {% endif %}
+    {% endfor %}
+    
+    // Start real-time updates
+    startRealTimeUpdates();
+}
+
+function addAmbulanceMarker(id, lat, lng, license_plate, status, gps_data) {
+    const statusClass = `ambulance-${status}`;
+    const emergencyLights = gps_data.emergency_lights ? '<div class="emergency-lights"></div>' : '';
+    const sirenActive = gps_data.siren_active ? '<div class="siren-active"></div>' : '';
+    
+    const markerHtml = `
+        <div class="ambulance-marker ${statusClass}">
+            <i class="fas fa-ambulance"></i>
+            ${emergencyLights}
+            ${sirenActive}
+        </div>
+    `;
+    
+    const marker = L.marker([lat, lng], {
+        icon: L.divIcon({
+            className: 'custom-ambulance-marker',
+            html: markerHtml,
+            iconSize: [40, 40],
+            iconAnchor: [20, 20]
+        })
+    }).addTo(map);
+    
+    const popupContent = `
+        <strong>${license_plate}</strong><br>
+        Status: ${status}<br>
+        Speed: ${gps_data.speed || 0} km/h<br>
+        ${gps_data.eta_minutes ? `ETA: ${gps_data.eta_minutes} minutes<br>` : ''}
+        Last Update: Just now
+    `;
+    
+    marker.bindPopup(popupContent);
+    ambulanceMarkers[id] = marker;
+}
+
+function addEmergencyCallMarker(id, lat, lng, call_number, priority) {
+    const priorityColors = {
+        'critical': '#dc2626',
+        'emergency': '#ea580c',
+        'urgent': '#d97706',
+        'routine': '#059669'
+    };
+    
+    const markerHtml = `
+        <div style="
+            width: 30px; 
+            height: 30px; 
+            background: ${priorityColors[priority]}; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-weight: bold;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        ">
+            <i class="fas fa-exclamation"></i>
+        </div>
+    `;
+    
+    const marker = L.marker([lat, lng], {
+        icon: L.divIcon({
+            className: 'custom-emergency-marker',
+            html: markerHtml,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        })
+    }).addTo(map);
+    
+    marker.bindPopup(`
+        <strong>Emergency Call</strong><br>
+        ${call_number}<br>
+        Priority: ${priority}
+    `);
+}
+
+function updateAmbulancePosition(ambulanceId, lat, lng, gps_data) {
+    if (ambulanceMarkers[ambulanceId]) {
+        ambulanceMarkers[ambulanceId].setLatLng([lat, lng]);
+        
+        // Update popup content
+        const popupContent = `
+            <strong>${gps_data.license_plate}</strong><br>
+            Status: ${gps_data.status}<br>
+            Speed: ${gps_data.speed || 0} km/h<br>
+            ${gps_data.eta_minutes ? `ETA: ${gps_data.eta_minutes} minutes<br>` : ''}
+            Last Update: Just now
+        `;
+        
+        ambulanceMarkers[ambulanceId].setPopupContent(popupContent);
+    }
+}
+
+function startRealTimeUpdates() {
+    // Update every 10 seconds
+    setInterval(() => {
+        fetch('/ambulances/api/gps/live-updates/')
+            .then(response => response.json())
+            .then(data => {
+                data.ambulances.forEach(ambulance => {
+                    updateAmbulancePosition(
+                        ambulance.id,
+                        ambulance.latitude,
+                        ambulance.longitude,
+                        ambulance
+                    );
+                });
+            })
+            .catch(error => console.error('Error updating positions:', error));
+    }, 10000);
+}
+
+function toggleTrafficLayer() {
+    if (trafficLayer) {
+        map.removeLayer(trafficLayer);
+        trafficLayer = null;
+    } else {
+        // Add traffic layer (placeholder - would integrate with real traffic API)
+        trafficLayer = L.layerGroup().addTo(map);
+        
+        {% for traffic in active_traffic %}
+            const trafficMarker = L.circle([{{ traffic.latitude }}, {{ traffic.longitude }}], {
+                color: getTrafficColor('{{ traffic.severity }}'),
+                fillColor: getTrafficColor('{{ traffic.severity }}'),
+                fillOpacity: 0.3,
+                radius: {{ traffic.radius_meters }}
+            }).addTo(trafficLayer);
+            
+            trafficMarker.bindPopup(`
+                <strong>{{ traffic.get_condition_type_display }}</strong><br>
+                Severity: {{ traffic.get_severity_display }}<br>
+                Delay: {{ traffic.delay_minutes }} minutes<br>
+                {{ traffic.description }}
+            `);
+        {% endfor %}
+    }
+}
+
+function getTrafficColor(severity) {
+    const colors = {
+        'light': '#10b981',
+        'moderate': '#f59e0b',
+        'heavy': '#ef4444',
+        'severe': '#7c2d12',
+        'blocked': '#1f2937'
+    };
+    return colors[severity] || '#6b7280';
+}
+
+function refreshTracking() {
+    location.reload();
+}
+
+// Initialize map when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initTrackingMap();
+});
+</script>
+{% endblock %}

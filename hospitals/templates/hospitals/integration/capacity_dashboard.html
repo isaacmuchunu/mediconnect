@@ -1,0 +1,481 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hospital Capacity Dashboard - MediConnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .capacity-dashboard {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    }
+    .hospital-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-left: 4px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .hospital-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    .hospital-card.normal {
+        border-left-color: #10b981;
+    }
+    .hospital-card.busy {
+        border-left-color: #f59e0b;
+    }
+    .hospital-card.critical {
+        border-left-color: #ef4444;
+    }
+    .hospital-card.full {
+        border-left-color: #dc2626;
+    }
+    .hospital-card.closed {
+        border-left-color: #6b7280;
+    }
+    .capacity-indicator {
+        width: 100%;
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .capacity-fill {
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    .capacity-normal { background: linear-gradient(90deg, #10b981 0%, #059669 100%); }
+    .capacity-busy { background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%); }
+    .capacity-critical { background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%); }
+    .capacity-full { background: linear-gradient(90deg, #dc2626 0%, #b91c1c 100%); }
+    .status-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 4px 8px;
+        border-radius: 12px;
+    }
+    .status-normal {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .status-busy {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .status-critical {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .status-full {
+        background: #fecaca;
+        color: #7f1d1d;
+    }
+    .status-closed {
+        background: #f3f4f6;
+        color: #374151;
+    }
+    .alert-card {
+        border-left: 4px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .alert-low { border-left-color: #10b981; }
+    .alert-medium { border-left-color: #f59e0b; }
+    .alert-high { border-left-color: #ef4444; }
+    .alert-critical { border-left-color: #dc2626; animation: pulse 2s infinite; }
+    .stats-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-left: 4px solid #059669;
+    }
+    .diversion-indicator {
+        background: #dc2626;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        animation: blink 1s infinite;
+    }
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0.5; }
+    }
+    .bed-chart {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        position: relative;
+    }
+    .bed-chart::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 50%;
+        background: conic-gradient(
+            #10b981 0deg,
+            #10b981 var(--available-angle, 0deg),
+            #ef4444 var(--available-angle, 0deg),
+            #ef4444 360deg
+        );
+        z-index: -1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="capacity-dashboard text-white p-6 shadow-lg">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="flex items-center justify-center w-12 h-12 bg-white bg-opacity-20 rounded-lg mr-4">
+                        <i class="fas fa-hospital text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold">Hospital Capacity Dashboard</h1>
+                        <p class="text-green-100">Real-time hospital capacity and availability monitoring</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold">{{ stats.total_hospitals }}</div>
+                        <div class="text-sm text-green-100">Total Hospitals</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold">{{ stats.hospitals_at_capacity }}</div>
+                        <div class="text-sm text-green-100">At Capacity</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold">{{ stats.hospitals_on_diversion }}</div>
+                        <div class="text-sm text-green-100">On Diversion</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold">{{ stats.bed_stats.occupancy_rate|floatformat:0 }}%</div>
+                        <div class="text-sm text-green-100">Avg Occupancy</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <!-- Quick Actions -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'ambulances:emergency_dispatch_center' %}" 
+                       class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        <i class="fas fa-broadcast-tower mr-2"></i>Dispatch Center
+                    </a>
+                    <a href="{% url 'ambulances:gps_tracking_dashboard' %}" 
+                       class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-satellite-dish mr-2"></i>GPS Tracking
+                    </a>
+                    <button onclick="refreshCapacity()" 
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                    </button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <span>Live Capacity Monitoring</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overall Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div class="stats-card p-6 rounded-lg shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-2xl font-bold text-gray-900">{{ stats.bed_stats.total_beds }}</div>
+                        <div class="text-sm text-gray-600">Total Beds</div>
+                    </div>
+                    <div class="bed-chart" style="--available-angle: {{ stats.bed_stats.occupancy_rate|floatformat:0 }}deg;">
+                        <span>{{ stats.bed_stats.occupancy_rate|floatformat:0 }}%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-card p-6 rounded-lg shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-2xl font-bold text-green-600">{{ stats.bed_stats.available_beds }}</div>
+                        <div class="text-sm text-gray-600">Available Beds</div>
+                    </div>
+                    <div class="text-3xl text-green-500">
+                        <i class="fas fa-bed"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-card p-6 rounded-lg shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-2xl font-bold text-red-600">{{ stats.bed_stats.occupied_beds }}</div>
+                        <div class="text-sm text-gray-600">Occupied Beds</div>
+                    </div>
+                    <div class="text-3xl text-red-500">
+                        <i class="fas fa-user-injured"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-card p-6 rounded-lg shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-2xl font-bold text-yellow-600">{{ stats.hospitals_on_diversion }}</div>
+                        <div class="text-sm text-gray-600">On Diversion</div>
+                    </div>
+                    <div class="text-3xl text-yellow-500">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Hospital List -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-sm">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">Hospital Status</h3>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-2 text-sm">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <span>Normal</span>
+                                </div>
+                                <div class="flex items-center space-x-2 text-sm">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                    <span>Busy</span>
+                                </div>
+                                <div class="flex items-center space-x-2 text-sm">
+                                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                    <span>Critical</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4 max-h-96 overflow-y-auto">
+                            {% for hospital in hospitals %}
+                            <div class="hospital-card {{ hospital.capacity_status.overall_status|default:'normal' }} p-4 rounded-lg border border-gray-200">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center mb-2">
+                                            <h4 class="font-semibold text-gray-900 mr-3">{{ hospital.name }}</h4>
+                                            {% if hospital.capacity_status %}
+                                                <span class="status-badge status-{{ hospital.capacity_status.overall_status }}">
+                                                    {{ hospital.capacity_status.get_overall_status_display }}
+                                                </span>
+                                                {% if hospital.capacity_status.ambulance_diversion %}
+                                                    <span class="diversion-indicator ml-2">DIVERSION</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-sm text-gray-600 mb-2">
+                                            <i class="fas fa-map-marker-alt mr-1"></i>
+                                            {{ hospital.address|truncatechars:40 }}
+                                        </div>
+                                        {% if hospital.capacity_status %}
+                                            <div class="grid grid-cols-3 gap-4 text-sm mb-3">
+                                                <div>
+                                                    <div class="text-gray-500">Total Beds</div>
+                                                    <div class="font-medium">{{ hospital.capacity_status.total_beds }}</div>
+                                                </div>
+                                                <div>
+                                                    <div class="text-gray-500">Available</div>
+                                                    <div class="font-medium text-green-600">{{ hospital.capacity_status.available_beds }}</div>
+                                                </div>
+                                                <div>
+                                                    <div class="text-gray-500">Occupancy</div>
+                                                    <div class="font-medium">{{ hospital.capacity_status.bed_occupancy_rate|floatformat:0 }}%</div>
+                                                </div>
+                                            </div>
+                                            <div class="capacity-indicator">
+                                                <div class="capacity-fill capacity-{{ hospital.capacity_status.overall_status }}" 
+                                                     style="width: {{ hospital.capacity_status.bed_occupancy_rate }}%"></div>
+                                            </div>
+                                        {% endif %}
+                                        {% if hospital.ed_status %}
+                                            <div class="mt-3 text-xs text-gray-500">
+                                                ED Wait: {{ hospital.ed_status.average_wait_time|floatformat:0 }}min
+                                                {% if hospital.ed_status.diversion_status %}
+                                                    • <span class="text-red-600 font-medium">ED Diversion</span>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex flex-col space-y-2 ml-4">
+                                        <a href="{% url 'hospitals:hospital_detail_capacity' hospital.id %}" 
+                                           class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors text-center">
+                                            <i class="fas fa-eye mr-1"></i>Details
+                                        </a>
+                                        {% if hospital.capacity_status.can_accept_patients %}
+                                            <span class="px-3 py-1 bg-green-100 text-green-800 text-xs rounded text-center font-medium">
+                                                <i class="fas fa-check mr-1"></i>Available
+                                            </span>
+                                        {% else %}
+                                            <span class="px-3 py-1 bg-red-100 text-red-800 text-xs rounded text-center font-medium">
+                                                <i class="fas fa-times mr-1"></i>Full
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Panel -->
+            <div class="space-y-6">
+                <!-- Critical Hospitals -->
+                <div class="bg-white rounded-lg shadow-sm">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">
+                            Critical Status
+                            {% if critical_hospitals %}
+                                <span class="ml-2 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+                                    {{ critical_hospitals.count }}
+                                </span>
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <div class="p-6">
+                        {% if critical_hospitals %}
+                            <div class="space-y-3 max-h-48 overflow-y-auto">
+                                {% for hospital in critical_hospitals %}
+                                <div class="p-3 border border-red-200 rounded-lg bg-red-50">
+                                    <div class="font-medium text-gray-900">{{ hospital.name }}</div>
+                                    {% if hospital.capacity_status %}
+                                        <div class="text-sm text-red-600">
+                                            {{ hospital.capacity_status.get_overall_status_display }}
+                                            {% if hospital.capacity_status.ambulance_diversion %}
+                                                • On Diversion
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            {{ hospital.capacity_status.available_beds }} beds available
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-check-circle text-green-500 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-600">All hospitals operating normally</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Active Alerts -->
+                <div class="bg-white rounded-lg shadow-sm">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Active Alerts</h3>
+                    </div>
+                    <div class="p-6">
+                        {% if active_alerts %}
+                            <div class="space-y-3 max-h-64 overflow-y-auto">
+                                {% for alert in active_alerts %}
+                                <div class="alert-card alert-{{ alert.severity }} p-3 border border-gray-200 rounded-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <div class="font-medium text-gray-900">{{ alert.title }}</div>
+                                            <div class="text-sm text-gray-600">{{ alert.hospital.name }}</div>
+                                            <div class="text-xs text-gray-500 mt-1">
+                                                {{ alert.alert_start|timesince }} ago
+                                            </div>
+                                        </div>
+                                        <span class="px-2 py-1 bg-{{ alert.severity }}-100 text-{{ alert.severity }}-800 text-xs font-medium rounded-full">
+                                            {{ alert.get_severity_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-bell-slash text-gray-400 text-2xl mb-2"></i>
+                                <p class="text-sm text-gray-600">No active alerts</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="bg-white rounded-lg shadow-sm">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Quick Stats</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Hospitals Online</span>
+                                <span class="font-medium">{{ stats.total_hospitals }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Total Bed Capacity</span>
+                                <span class="font-medium">{{ stats.bed_stats.total_beds }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">System Occupancy</span>
+                                <span class="font-medium">{{ stats.bed_stats.occupancy_rate|floatformat:1 }}%</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Available Capacity</span>
+                                <span class="font-medium text-green-600">{{ stats.bed_stats.available_beds }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function refreshCapacity() {
+    location.reload();
+}
+
+// Auto-refresh every 2 minutes
+setInterval(refreshCapacity, 120000);
+
+// Real-time capacity updates (placeholder for WebSocket implementation)
+function updateHospitalCapacity(hospitalId, capacityData) {
+    // TODO: Implement real-time updates via WebSocket
+    console.log('Capacity update for hospital:', hospitalId, capacityData);
+}
+
+// Initialize tooltips and interactive elements
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers for hospital cards
+    document.querySelectorAll('.hospital-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (!e.target.closest('a')) {
+                const detailLink = card.querySelector('a[href*="hospital_detail"]');
+                if (detailLink) {
+                    window.location.href = detailLink.href;
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

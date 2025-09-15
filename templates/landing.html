@@ -1,0 +1,337 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediConnect - Hospital E-Referral & Ambulance Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'medical-blue': '#1e40af',
+                        'medical-green': '#059669',
+                        'medical-red': '#dc2626',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-heartbeat text-medical-red text-2xl mr-2"></i>
+                        <span class="text-2xl font-bold text-gray-800">MediConnect</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'users:login' %}" class="bg-medical-blue text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Login
+                    </a>
+                    <a href="{% url 'users:register_choice' %}" class="bg-medical-green text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-300">
+                        <i class="fas fa-user-plus mr-2"></i>Register
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-20 pb-16 bg-gradient-to-br from-medical-blue to-blue-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="text-white">
+                    <h1 class="text-5xl font-bold mb-6 leading-tight">
+                        Advanced Hospital E-Referral & 
+                        <span class="text-yellow-300">Ambulance Management</span>
+                    </h1>
+                    <p class="text-xl mb-8 text-blue-100">
+                        Streamline patient referrals, manage ambulance fleets, and coordinate emergency services 
+                        with our comprehensive healthcare management platform.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="{% url 'users:register_choice' %}" class="bg-medical-green text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition duration-300 text-center">
+                            <i class="fas fa-rocket mr-2"></i>Get Started Today
+                        </a>
+                        <a href="#features" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-medical-blue transition duration-300 text-center">
+                            <i class="fas fa-info-circle mr-2"></i>Learn More
+                        </a>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="bg-white rounded-lg shadow-2xl p-8">
+                        <div class="text-center mb-6">
+                            <i class="fas fa-hospital text-medical-blue text-6xl mb-4"></i>
+                            <h3 class="text-2xl font-bold text-gray-800">System Dashboard</h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-blue-50 p-4 rounded-lg text-center">
+                                <i class="fas fa-ambulance text-medical-red text-2xl mb-2"></i>
+                                <div class="text-2xl font-bold text-gray-800">5</div>
+                                <div class="text-sm text-gray-600">Active Ambulances</div>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg text-center">
+                                <i class="fas fa-user-md text-medical-green text-2xl mb-2"></i>
+                                <div class="text-2xl font-bold text-gray-800">24/7</div>
+                                <div class="text-sm text-gray-600">Emergency Services</div>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg text-center">
+                                <i class="fas fa-exchange-alt text-yellow-600 text-2xl mb-2"></i>
+                                <div class="text-2xl font-bold text-gray-800">Real-time</div>
+                                <div class="text-sm text-gray-600">Referral Tracking</div>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg text-center">
+                                <i class="fas fa-map-marker-alt text-purple-600 text-2xl mb-2"></i>
+                                <div class="text-2xl font-bold text-gray-800">GPS</div>
+                                <div class="text-sm text-gray-600">Live Tracking</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Comprehensive Healthcare Management</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Our platform integrates all aspects of hospital operations, from patient referrals to emergency ambulance dispatch.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- E-Referral System -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                    <div class="text-medical-blue text-4xl mb-4">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">E-Referral System</h3>
+                    <p class="text-gray-600 mb-4">
+                        Streamline patient referrals between hospitals and specialists with digital workflows and real-time tracking.
+                    </p>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Digital referral forms</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Real-time status updates</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Multi-hospital network</li>
+                    </ul>
+                </div>
+
+                <!-- Ambulance Management -->
+                <div class="bg-gradient-to-br from-red-50 to-red-100 p-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                    <div class="text-medical-red text-4xl mb-4">
+                        <i class="fas fa-ambulance"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Ambulance Fleet Management</h3>
+                    <p class="text-gray-600 mb-4">
+                        Advanced ambulance tracking, intelligent dispatch, and comprehensive fleet management capabilities.
+                    </p>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Real-time GPS tracking</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Intelligent dispatch</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Maintenance scheduling</li>
+                    </ul>
+                </div>
+
+                <!-- Emergency Services -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 p-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                    <div class="text-medical-green text-4xl mb-4">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Emergency Coordination</h3>
+                    <p class="text-gray-600 mb-4">
+                        Coordinate emergency services with priority dispatch, real-time communication, and performance analytics.
+                    </p>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Priority-based dispatch</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Emergency protocols</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Performance monitoring</li>
+                    </ul>
+                </div>
+
+                <!-- Patient Management -->
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                    <div class="text-purple-600 text-4xl mb-4">
+                        <i class="fas fa-user-injured"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Patient Management</h3>
+                    <p class="text-gray-600 mb-4">
+                        Comprehensive patient records, appointment scheduling, and care coordination across the healthcare network.
+                    </p>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Digital health records</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Appointment scheduling</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Care coordination</li>
+                    </ul>
+                </div>
+
+                <!-- Analytics & Reporting -->
+                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                    <div class="text-yellow-600 text-4xl mb-4">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Analytics & Reporting</h3>
+                    <p class="text-gray-600 mb-4">
+                        Advanced analytics, performance metrics, and comprehensive reporting for data-driven decision making.
+                    </p>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Real-time dashboards</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Performance metrics</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Custom reports</li>
+                    </ul>
+                </div>
+
+                <!-- Security & Compliance -->
+                <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-8 rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                    <div class="text-indigo-600 text-4xl mb-4">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Security & Compliance</h3>
+                    <p class="text-gray-600 mb-4">
+                        Enterprise-grade security, HIPAA compliance, and robust data protection for healthcare environments.
+                    </p>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>HIPAA compliant</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Role-based access</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Audit logging</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section class="py-20 bg-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">System Performance</h2>
+                <p class="text-xl text-gray-600">Real-time statistics from our healthcare network</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                    <div class="text-4xl font-bold text-medical-blue mb-2">5</div>
+                    <div class="text-gray-600">Active Ambulances</div>
+                    <div class="text-sm text-green-500 mt-2">
+                        <i class="fas fa-arrow-up mr-1"></i>100% Operational
+                    </div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                    <div class="text-4xl font-bold text-medical-green mb-2">4</div>
+                    <div class="text-gray-600">Hospital Network</div>
+                    <div class="text-sm text-green-500 mt-2">
+                        <i class="fas fa-arrow-up mr-1"></i>24/7 Coverage
+                    </div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                    <div class="text-4xl font-bold text-medical-red mb-2">10</div>
+                    <div class="text-gray-600">Medical Specialties</div>
+                    <div class="text-sm text-green-500 mt-2">
+                        <i class="fas fa-arrow-up mr-1"></i>Complete Coverage
+                    </div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                    <div class="text-4xl font-bold text-purple-600 mb-2">24/7</div>
+                    <div class="text-gray-600">Emergency Services</div>
+                    <div class="text-sm text-green-500 mt-2">
+                        <i class="fas fa-arrow-up mr-1"></i>Always Available
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-gradient-to-r from-medical-blue to-blue-800">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-4xl font-bold text-white mb-6">Ready to Transform Your Healthcare Operations?</h2>
+            <p class="text-xl text-blue-100 mb-8">
+                Join the future of healthcare management with our comprehensive e-referral and ambulance management platform.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'users:register_choice' %}" class="bg-medical-green text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition duration-300">
+                    <i class="fas fa-user-plus mr-2"></i>Create Account
+                </a>
+                <a href="{% url 'users:login' %}" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-medical-blue transition duration-300">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login to Dashboard
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-heartbeat text-medical-red text-2xl mr-2"></i>
+                        <span class="text-2xl font-bold">MediConnect</span>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        Advanced hospital e-referral and ambulance management system designed for modern healthcare operations.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-300 hover:text-white transition duration-300">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-white transition duration-300">
+                            <i class="fab fa-linkedin text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-white transition duration-300">
+                            <i class="fab fa-github text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="{% url 'users:login' %}" class="text-gray-300 hover:text-white transition duration-300">Login</a></li>
+                        <li><a href="{% url 'users:register_choice' %}" class="text-gray-300 hover:text-white transition duration-300">Register</a></li>
+                        <li><a href="/admin/" class="text-gray-300 hover:text-white transition duration-300">Admin Portal</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Support</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-300 hover:text-white transition duration-300">Documentation</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition duration-300">Help Center</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition duration-300">Contact Support</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p class="text-gray-300">© 2025 MediConnect Hospital E-Referral System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Smooth Scrolling Script -->
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

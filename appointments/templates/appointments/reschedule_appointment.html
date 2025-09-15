@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reschedule Appointment{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-calendar-alt"></i> Reschedule Appointment #{{ appointment.id }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Current Appointment Information -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">Current Appointment Details</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Patient:</strong> {{ appointment.referral.patient.name }}</p>
+                                <p class="mb-1"><strong>Doctor:</strong> Dr. {{ appointment.referral.doctor.name }}</p>
+                                <p class="mb-0"><strong>Specialty:</strong> {{ appointment.referral.specialty }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Current Date:</strong> {{ appointment.appointment_date|date:"F d, Y" }}</p>
+                                <p class="mb-1"><strong>Current Time:</strong> {{ appointment.appointment_date|date:"g:i A" }}</p>
+                                <p class="mb-0"><strong>Status:</strong> 
+                                    <span class="badge bg-primary">{{ appointment.get_status_display }}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Reschedule Form -->
+                    <form method="post" id="rescheduleForm">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <h6>Please correct the following errors:</h6>
+                                <ul class="mb-0">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li>{{ field|title }}: {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.new_date.id_for_label }}" class="form-label">
+                                    <i class="fas fa-calendar"></i> New Appointment Date *
+                                </label>
+                                {{ form.new_date }}
+                                {% if form.new_date.help_text %}
+                                    <small class="form-text text-muted">{{ form.new_date.help_text }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.new_time.id_for_label }}" class="form-label">
+                                    <i class="fas fa-clock"></i> New Appointment Time *
+                                </label>
+                                {{ form.new_time }}
+                                {% if form.new_time.help_text %}
+                                    <small class="form-text text-muted">{{ form.new_time.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.reason.id_for_label }}" class="form-label">
+                                <i class="fas fa-comment"></i> Reason for Rescheduling *
+                            </label>
+                            {{ form.reason }}
+                            {% if form.reason.help_text %}
+                                <small class="form-text text-muted">{{ form.reason.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Available Time Slots -->
+                        <div class="mb-4">
+                            <h6 class="text-primary">Suggested Available Time Slots</h6>
+                            <div class="row" id="timeSlots">
+                                <div class="col-md-3 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm time-slot" data-time="09:00">9:00 AM</button>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm time-slot" data-time="10:00">10:00 AM</button>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm time-slot" data-time="11:00">11:00 AM</button>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm time-slot" data-time="14:00">2:00 PM</button>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm time-slot" data-time="15:00">3:00 PM</button>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm time-slot" data-time="16:00">4:00 PM</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification Options -->
+                        <div class="mb-4">
+                            <h6 class="text-primary">Notification Preferences</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="notifyPatient" name="notify_patient" checked>
+                                <label class="form-check-label" for="notifyPatient">
+                                    Notify patient about the rescheduled appointment
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="notifyDoctor" name="notify_doctor" checked>
+                                <label class="form-check-label" for="notifyDoctor">
+                                    Notify doctor about the rescheduled appointment
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'appointments:detail' appointment.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Appointment
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-calendar-alt"></i> Reschedule Appointment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Reschedule History -->
+            {% if reschedule_history %}
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-history"></i> Reschedule History
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            {% for history in reschedule_history %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-warning"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">Rescheduled</h6>
+                                        <p class="timeline-text">
+                                            From: {{ history.old_date|date:"M d, Y g:i A" }}<br>
+                                            To: {{ history.new_date|date:"M d, Y g:i A" }}<br>
+                                            Reason: {{ history.reason }}
+                                        </p>
+                                        <small class="text-muted">{{ history.created_at|date:"M d, Y g:i A" }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #ffc107;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: -30px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 3px solid #ffc107;
+}
+
+.timeline-title {
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.timeline-text {
+    margin-bottom: 10px;
+    color: #6c757d;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    $('#id_new_date').attr('min', today);
+    
+    // Time slot selection
+    $('.time-slot').click(function() {
+        $('.time-slot').removeClass('btn-primary').addClass('btn-outline-primary');
+        $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+        $('#id_new_time').val($(this).data('time'));
+    });
+    
+    // Form validation
+    $('#rescheduleForm').submit(function(e) {
+        const newDate = $('#id_new_date').val();
+        const newTime = $('#id_new_time').val();
+        const reason = $('#id_reason').val().trim();
+        
+        if (!newDate) {
+            e.preventDefault();
+            alert('Please select a new appointment date.');
+            return false;
+        }
+        
+        if (!newTime) {
+            e.preventDefault();
+            alert('Please select a new appointment time.');
+            return false;
+        }
+        
+        if (!reason) {
+            e.preventDefault();
+            alert('Please provide a reason for rescheduling.');
+            return false;
+        }
+        
+        // Check if selected date is in the past
+        const selectedDate = new Date(newDate);
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < currentDate) {
+            e.preventDefault();
+            alert('Please select a future date for the appointment.');
+            return false;
+        }
+        
+        // Check if the new date/time is different from current
+        const currentDateTime = new Date('{{ appointment.appointment_date|date:"Y-m-d H:i" }}');
+        const newDateTime = new Date(newDate + ' ' + newTime);
+        
+        if (currentDateTime.getTime() === newDateTime.getTime()) {
+            e.preventDefault();
+            alert('Please select a different date or time from the current appointment.');
+            return false;
+        }
+        
+        return true;
+    });
+    
+    // Auto-populate current time if no time is selected
+    const currentTime = '{{ appointment.appointment_date|date:"H:i" }}';
+    if (!$('#id_new_time').val()) {
+        $('#id_new_time').val(currentTime);
+    }
+});
+</script>
+{% endblock %}

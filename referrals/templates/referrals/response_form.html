@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Respond to Referral - {{ referral.patient.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .priority-high { color: #dc2626; }
+    .priority-medium { color: #f59e0b; }
+    .priority-low { color: #10b981; }
+    .status-draft { background-color: #f3f4f6; color: #374151; }
+    .status-sent { background-color: #dbeafe; color: #1e40af; }
+    .status-viewed { background-color: #fef3c7; color: #92400e; }
+    .status-accepted { background-color: #d1fae5; color: #065f46; }
+    .status-declined { background-color: #fee2e2; color: #991b1b; }
+    .status-completed { background-color: #e0e7ff; color: #3730a3; }
+    .response-accept { background-color: #10b981; }
+    .response-decline { background-color: #ef4444; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                    Respond to Referral
+                </h1>
+                <p class="text-gray-600">
+                    Patient: {{ referral.patient.get_full_name }} | 
+                    From: {{ referral.referring_doctor.get_full_name }}
+                </p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium status-{{ referral.status }}">
+                    {{ referral.get_status_display }}
+                </span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium priority-{{ referral.priority }}">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    {{ referral.get_priority_display }} Priority
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Response Form -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-6">
+                    <i class="fas fa-reply mr-2 text-blue-600"></i>
+                    Your Response
+                </h2>
+
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Response Type -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">
+                            Response Type *
+                        </label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="relative">
+                                <input type="radio" name="action" value="accept" required 
+                                       class="sr-only peer" id="accept-radio">
+                                <div class="w-full p-4 border-2 border-gray-300 rounded-lg cursor-pointer peer-checked:border-green-500 peer-checked:bg-green-50 hover:bg-gray-50">
+                                    <div class="flex items-center justify-center">
+                                        <i class="fas fa-check-circle text-2xl text-green-600 mr-3"></i>
+                                        <div>
+                                            <div class="font-medium text-gray-900">Accept Referral</div>
+                                            <div class="text-sm text-gray-500">I will see this patient</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                            
+                            <label class="relative">
+                                <input type="radio" name="action" value="decline" required 
+                                       class="sr-only peer" id="decline-radio">
+                                <div class="w-full p-4 border-2 border-gray-300 rounded-lg cursor-pointer peer-checked:border-red-500 peer-checked:bg-red-50 hover:bg-gray-50">
+                                    <div class="flex items-center justify-center">
+                                        <i class="fas fa-times-circle text-2xl text-red-600 mr-3"></i>
+                                        <div>
+                                            <div class="font-medium text-gray-900">Decline Referral</div>
+                                            <div class="text-sm text-gray-500">I cannot see this patient</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Response Notes -->
+                    <div>
+                        <label for="{{ form.response_notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Response Notes *
+                        </label>
+                        <textarea id="{{ form.response_notes.id_for_label }}" 
+                                  name="{{ form.response_notes.name }}" 
+                                  rows="6" 
+                                  required
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  placeholder="Please provide your response notes...">{{ form.response_notes.value|default:'' }}</textarea>
+                        {% if form.response_notes.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.response_notes.errors.0 }}
+                        </div>
+                        {% endif %}
+                        <div class="mt-2 text-sm text-gray-500">
+                            <div id="accept-guidance" class="hidden">
+                                <strong>Acceptance Notes:</strong> Please include:
+                                <ul class="list-disc list-inside mt-1 space-y-1">
+                                    <li>Proposed appointment timeframe</li>
+                                    <li>Any specific preparation required</li>
+                                    <li>Contact information for scheduling</li>
+                                    <li>Any additional tests or information needed</li>
+                                </ul>
+                            </div>
+                            <div id="decline-guidance" class="hidden">
+                                <strong>Decline Reasons:</strong> Please include:
+                                <ul class="list-disc list-inside mt-1 space-y-1">
+                                    <li>Reason for declining (capacity, specialty mismatch, etc.)</li>
+                                    <li>Alternative specialist recommendations if available</li>
+                                    <li>Suggested next steps for the referring doctor</li>
+                                    <li>Any urgent care recommendations if applicable</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estimated Appointment Date (for acceptance) -->
+                    <div id="appointment-section" class="hidden">
+                        <label for="estimated_date" class="block text-sm font-medium text-gray-700 mb-2">
+                            Estimated Appointment Date
+                        </label>
+                        <input type="date" id="estimated_date" name="estimated_date" 
+                               min="{{ today|date:'Y-m-d' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div class="mt-1 text-sm text-gray-500">
+                            Provide an estimated date when you can see this patient
+                        </div>
+                    </div>
+
+                    <!-- Alternative Specialist (for decline) -->
+                    <div id="alternative-section" class="hidden">
+                        <label for="alternative_specialist" class="block text-sm font-medium text-gray-700 mb-2">
+                            Alternative Specialist Recommendation
+                        </label>
+                        <input type="text" id="alternative_specialist" name="alternative_specialist" 
+                               placeholder="Dr. Smith - Cardiology, Hospital XYZ"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div class="mt-1 text-sm text-gray-500">
+                            Suggest an alternative specialist if available
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                        <a href="{% url 'referrals:referral_detail' referral.id %}" 
+                           class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-arrow-left mr-1"></i> Back to Details
+                        </a>
+                        <div class="flex space-x-3">
+                            <button type="button" onclick="saveDraft()" 
+                                    class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-md text-sm font-medium">
+                                <i class="fas fa-save mr-1"></i> Save Draft
+                            </button>
+                            <button type="submit" id="submit-btn" 
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium">
+                                <i class="fas fa-paper-plane mr-1"></i> Submit Response
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Referral Summary -->
+        <div class="space-y-6">
+            <!-- Patient Info -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-user mr-2 text-blue-600"></i>
+                    Patient Information
+                </h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Name</label>
+                        <p class="text-sm text-gray-900">{{ referral.patient.get_full_name }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                        <p class="text-sm text-gray-900">{{ referral.patient.date_of_birth|date:"F d, Y" }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">NHS Number</label>
+                        <p class="text-sm text-gray-900">{{ referral.patient.nhs_number }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Phone</label>
+                        <p class="text-sm text-gray-900">{{ referral.patient.phone_number }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral Details -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-file-medical mr-2 text-blue-600"></i>
+                    Referral Details
+                </h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Specialty</label>
+                        <p class="text-sm text-gray-900">{{ referral.specialty }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Reason</label>
+                        <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ referral.reason }}</p>
+                    </div>
+                    {% if referral.notes %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Clinical Notes</label>
+                        <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ referral.notes }}</p>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Referring Doctor</label>
+                        <p class="text-sm text-gray-900">{{ referral.referring_doctor.get_full_name }}</p>
+                        <p class="text-xs text-gray-500">{{ referral.referring_doctor.specialty }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Urgency Indicators -->
+            {% if referral.priority == 'high' or referral.ambulance_required %}
+            <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-red-900 mb-4">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Urgent Attention Required
+                </h3>
+                <div class="space-y-2">
+                    {% if referral.priority == 'high' %}
+                    <div class="flex items-center text-red-700">
+                        <i class="fas fa-clock mr-2"></i>
+                        <span class="text-sm">High Priority Referral</span>
+                    </div>
+                    {% endif %}
+                    {% if referral.ambulance_required %}
+                    <div class="flex items-center text-red-700">
+                        <i class="fas fa-ambulance mr-2"></i>
+                        <span class="text-sm">Ambulance Transport Required</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const acceptRadio = document.getElementById('accept-radio');
+    const declineRadio = document.getElementById('decline-radio');
+    const acceptGuidance = document.getElementById('accept-guidance');
+    const declineGuidance = document.getElementById('decline-guidance');
+    const appointmentSection = document.getElementById('appointment-section');
+    const alternativeSection = document.getElementById('alternative-section');
+    const submitBtn = document.getElementById('submit-btn');
+
+    function updateFormState() {
+        if (acceptRadio.checked) {
+            acceptGuidance.classList.remove('hidden');
+            declineGuidance.classList.add('hidden');
+            appointmentSection.classList.remove('hidden');
+            alternativeSection.classList.add('hidden');
+            submitBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Accept Referral';
+            submitBtn.className = 'response-accept hover:bg-green-700 text-white px-6 py-2 rounded-md text-sm font-medium';
+        } else if (declineRadio.checked) {
+            acceptGuidance.classList.add('hidden');
+            declineGuidance.classList.remove('hidden');
+            appointmentSection.classList.add('hidden');
+            alternativeSection.classList.remove('hidden');
+            submitBtn.innerHTML = '<i class="fas fa-times mr-1"></i> Decline Referral';
+            submitBtn.className = 'response-decline hover:bg-red-700 text-white px-6 py-2 rounded-md text-sm font-medium';
+        } else {
+            acceptGuidance.classList.add('hidden');
+            declineGuidance.classList.add('hidden');
+            appointmentSection.classList.add('hidden');
+            alternativeSection.classList.add('hidden');
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Submit Response';
+            submitBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium';
+        }
+    }
+
+    acceptRadio.addEventListener('change', updateFormState);
+    declineRadio.addEventListener('change', updateFormState);
+
+    // Initialize form state
+    updateFormState();
+
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const responseNotes = document.querySelector('textarea[name="response_notes"]');
+        if (!responseNotes.value.trim()) {
+            e.preventDefault();
+            alert('Please provide response notes.');
+            responseNotes.focus();
+            return;
+        }
+
+        if (!acceptRadio.checked && !declineRadio.checked) {
+            e.preventDefault();
+            alert('Please select whether to accept or decline the referral.');
+            return;
+        }
+
+        // Confirm submission
+        const action = acceptRadio.checked ? 'accept' : 'decline';
+        if (!confirm(`Are you sure you want to ${action} this referral?`)) {
+            e.preventDefault();
+        }
+    });
+});
+
+function saveDraft() {
+    // Save form data to localStorage
+    const formData = {
+        action: document.querySelector('input[name="action"]:checked')?.value,
+        response_notes: document.querySelector('textarea[name="response_notes"]').value,
+        estimated_date: document.querySelector('input[name="estimated_date"]').value,
+        alternative_specialist: document.querySelector('input[name="alternative_specialist"]').value
+    };
+    
+    localStorage.setItem('referral_response_draft_{{ referral.id }}', JSON.stringify(formData));
+    
+    // Show confirmation
+    const originalText = event.target.innerHTML;
+    event.target.innerHTML = '<i class="fas fa-check mr-1"></i> Saved!';
+    event.target.disabled = true;
+    
+    setTimeout(() => {
+        event.target.innerHTML = originalText;
+        event.target.disabled = false;
+    }, 2000);
+}
+
+// Load draft on page load
+window.addEventListener('load', function() {
+    const draft = localStorage.getItem('referral_response_draft_{{ referral.id }}');
+    if (draft) {
+        const formData = JSON.parse(draft);
+        
+        if (formData.action) {
+            document.querySelector(`input[name="action"][value="${formData.action}"]`).checked = true;
+        }
+        if (formData.response_notes) {
+            document.querySelector('textarea[name="response_notes"]').value = formData.response_notes;
+        }
+        if (formData.estimated_date) {
+            document.querySelector('input[name="estimated_date"]').value = formData.estimated_date;
+        }
+        if (formData.alternative_specialist) {
+            document.querySelector('input[name="alternative_specialist"]').value = formData.alternative_specialist;
+        }
+        
+        // Update form state
+        document.querySelector('input[name="action"]:checked')?.dispatchEvent(new Event('change'));
+    }
+});
+
+// Clear draft on successful submission
+window.addEventListener('beforeunload', function() {
+    if (document.querySelector('form').checkValidity()) {
+        localStorage.removeItem('referral_response_draft_{{ referral.id }}');
+    }
+});
+</script>
+{% endblock %}

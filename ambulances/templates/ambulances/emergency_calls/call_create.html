@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}New Emergency Call - MediConnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-left: 4px solid #dc2626;
+        transition: all 0.3s ease;
+    }
+    .form-section:hover {
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    .priority-critical {
+        background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+        border-left-color: #dc2626;
+    }
+    .priority-emergency {
+        background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);
+        border-left-color: #ea580c;
+    }
+    .priority-urgent {
+        background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+        border-left-color: #d97706;
+    }
+    .priority-routine {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+        border-left-color: #059669;
+    }
+    .emergency-header {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    }
+    .quick-assessment {
+        background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+        border: 2px dashed #dc2626;
+    }
+    .assessment-item {
+        transition: all 0.2s ease;
+    }
+    .assessment-item:hover {
+        background: #fef2f2;
+        transform: scale(1.02);
+    }
+    .form-input:focus {
+        ring-color: #dc2626;
+        border-color: #dc2626;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Emergency Header -->
+    <div class="emergency-header text-white p-6 shadow-lg">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center">
+                <div class="flex items-center justify-center w-12 h-12 bg-white bg-opacity-20 rounded-lg mr-4">
+                    <i class="fas fa-phone-alt text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold">Emergency Call Intake</h1>
+                    <p class="text-red-100">Complete emergency call information and dispatch ambulance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 py-6">
+        <!-- Quick Actions -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'ambulances:emergency_dispatch_center' %}" 
+                       class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dispatch Center
+                    </a>
+                    <div class="text-sm text-gray-600">
+                        <i class="fas fa-clock mr-1"></i>
+                        Call started at {{ now|date:"H:i:s" }}
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <span class="text-sm font-medium text-red-600">EMERGENCY CALL ACTIVE</span>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" class="space-y-6" id="emergencyCallForm">
+            {% csrf_token %}
+            
+            <!-- Caller Information -->
+            <div class="form-section p-6 rounded-lg shadow-sm">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-user text-red-600 text-xl mr-3"></i>
+                    <h2 class="text-xl font-bold text-gray-900">Caller Information</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.caller_phone.label }}
+                        </label>
+                        {{ form.caller_phone }}
+                        {% if form.caller_phone.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ form.caller_phone.help_text }}</p>
+                        {% endif %}
+                        {% if form.caller_phone.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.caller_phone.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.caller_name.label }}
+                        </label>
+                        {{ form.caller_name }}
+                        {% if form.caller_name.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.caller_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.caller_relationship.label }}
+                        </label>
+                        {{ form.caller_relationship }}
+                        {% if form.caller_relationship.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.caller_relationship.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Classification -->
+            <div class="form-section p-6 rounded-lg shadow-sm">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl mr-3"></i>
+                    <h2 class="text-xl font-bold text-gray-900">Emergency Classification</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.call_type.label }}
+                        </label>
+                        {{ form.call_type }}
+                        {% if form.call_type.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.call_type.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.priority.label }}
+                        </label>
+                        {{ form.priority }}
+                        {% if form.priority.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.priority.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Information -->
+            <div class="form-section p-6 rounded-lg shadow-sm">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-map-marker-alt text-red-600 text-xl mr-3"></i>
+                    <h2 class="text-xl font-bold text-gray-900">Location Information</h2>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.incident_address.label }}
+                        </label>
+                        {{ form.incident_address }}
+                        {% if form.incident_address.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.incident_address.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.landmark_description.label }}
+                            </label>
+                            {{ form.landmark_description }}
+                            {% if form.landmark_description.errors %}
+                                <div class="mt-1 text-sm text-red-600">{{ form.landmark_description.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.access_instructions.label }}
+                            </label>
+                            {{ form.access_instructions }}
+                            {% if form.access_instructions.errors %}
+                                <div class="mt-1 text-sm text-red-600">{{ form.access_instructions.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patient Information -->
+            <div class="form-section p-6 rounded-lg shadow-sm">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-user-injured text-red-600 text-xl mr-3"></i>
+                    <h2 class="text-xl font-bold text-gray-900">Patient Information</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.patient_name.label }}
+                        </label>
+                        {{ form.patient_name }}
+                        {% if form.patient_name.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.patient_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.patient_age.label }}
+                        </label>
+                        {{ form.patient_age }}
+                        {% if form.patient_age.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ form.patient_age.help_text }}</p>
+                        {% endif %}
+                        {% if form.patient_age.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.patient_age.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.patient_gender.label }}
+                        </label>
+                        {{ form.patient_gender }}
+                        {% if form.patient_gender.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.patient_gender.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.patient_consciousness.label }}
+                        </label>
+                        {{ form.patient_consciousness }}
+                        {% if form.patient_consciousness.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.patient_consciousness.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.patient_breathing.label }}
+                        </label>
+                        {{ form.patient_breathing }}
+                        {% if form.patient_breathing.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.patient_breathing.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medical Information -->
+            <div class="form-section p-6 rounded-lg shadow-sm">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-stethoscope text-red-600 text-xl mr-3"></i>
+                    <h2 class="text-xl font-bold text-gray-900">Medical Information</h2>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.chief_complaint.label }}
+                        </label>
+                        {{ form.chief_complaint }}
+                        {% if form.chief_complaint.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ form.chief_complaint.help_text }}</p>
+                        {% endif %}
+                        {% if form.chief_complaint.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.chief_complaint.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.symptoms_description.label }}
+                        </label>
+                        {{ form.symptoms_description }}
+                        {% if form.symptoms_description.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.symptoms_description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.medical_history.label }}
+                            </label>
+                            {{ form.medical_history }}
+                            {% if form.medical_history.errors %}
+                                <div class="mt-1 text-sm text-red-600">{{ form.medical_history.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.medications.label }}
+                            </label>
+                            {{ form.medications }}
+                            {% if form.medications.errors %}
+                                <div class="mt-1 text-sm text-red-600">{{ form.medications.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.allergies.label }}
+                            </label>
+                            {{ form.allergies }}
+                            {% if form.allergies.errors %}
+                                <div class="mt-1 text-sm text-red-600">{{ form.allergies.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety and Additional Information -->
+            <div class="form-section p-6 rounded-lg shadow-sm">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-shield-alt text-red-600 text-xl mr-3"></i>
+                    <h2 class="text-xl font-bold text-gray-900">Safety & Additional Information</h2>
+                </div>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="flex items-center">
+                            {{ form.hazards_present }}
+                            <label class="ml-2 text-sm font-medium text-gray-700">
+                                {{ form.hazards_present.label }}
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            {{ form.police_required }}
+                            <label class="ml-2 text-sm font-medium text-gray-700">
+                                {{ form.police_required.label }}
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            {{ form.fire_required }}
+                            <label class="ml-2 text-sm font-medium text-gray-700">
+                                {{ form.fire_required.label }}
+                            </label>
+                        </div>
+                    </div>
+                    <div id="hazardDescription" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.hazard_description.label }}
+                        </label>
+                        {{ form.hazard_description }}
+                        {% if form.hazard_description.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.hazard_description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.special_instructions.label }}
+                        </label>
+                        {{ form.special_instructions }}
+                        {% if form.special_instructions.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.special_instructions.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.call_notes.label }}
+                        </label>
+                        {{ form.call_notes }}
+                        {% if form.call_notes.errors %}
+                            <div class="mt-1 text-sm text-red-600">{{ form.call_notes.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-between pt-6">
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'ambulances:emergency_dispatch_center' %}" 
+                       class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button type="button" onclick="saveAsDraft()" 
+                            class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-save mr-2"></i>Save as Draft
+                    </button>
+                    <button type="submit" 
+                            class="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold">
+                        <i class="fas fa-phone-alt mr-2"></i>Create Emergency Call
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Show/hide hazard description based on checkbox
+document.getElementById('id_hazards_present').addEventListener('change', function() {
+    const hazardDesc = document.getElementById('hazardDescription');
+    if (this.checked) {
+        hazardDesc.classList.remove('hidden');
+    } else {
+        hazardDesc.classList.add('hidden');
+    }
+});
+
+// Auto-update priority based on call type
+document.getElementById('id_call_type').addEventListener('change', function() {
+    const priorityField = document.getElementById('id_priority');
+    const callType = this.value;
+    
+    if (['cardiac', 'respiratory', 'trauma'].includes(callType)) {
+        priorityField.value = 'emergency';
+    } else if (['medical', 'psychiatric'].includes(callType)) {
+        priorityField.value = 'urgent';
+    }
+    
+    updateFormStyling();
+});
+
+// Update form styling based on priority
+function updateFormStyling() {
+    const priority = document.getElementById('id_priority').value;
+    const sections = document.querySelectorAll('.form-section');
+    
+    sections.forEach(section => {
+        section.className = section.className.replace(/priority-\w+/g, '');
+        if (priority) {
+            section.classList.add(`priority-${priority}`);
+        }
+    });
+}
+
+// Initialize form styling
+document.addEventListener('DOMContentLoaded', function() {
+    updateFormStyling();
+    
+    // Add priority change listener
+    document.getElementById('id_priority').addEventListener('change', updateFormStyling);
+});
+
+// Save as draft functionality
+function saveAsDraft() {
+    // TODO: Implement draft saving
+    alert('Draft saving functionality will be implemented');
+}
+
+// Form validation
+document.getElementById('emergencyCallForm').addEventListener('submit', function(e) {
+    const requiredFields = ['caller_phone', 'call_type', 'priority', 'incident_address', 'chief_complaint'];
+    let isValid = true;
+    
+    requiredFields.forEach(fieldName => {
+        const field = document.getElementById(`id_${fieldName}`);
+        if (!field.value.trim()) {
+            isValid = false;
+            field.classList.add('border-red-500');
+        } else {
+            field.classList.remove('border-red-500');
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('Please fill in all required fields.');
+    }
+});
+</script>
+{% endblock %}

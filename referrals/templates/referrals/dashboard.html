@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Referrals Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .stats-card h3 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+    .stats-card p {
+        margin: 5px 0 0 0;
+        opacity: 0.9;
+    }
+    .urgent-badge {
+        background-color: #dc3545;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    .priority-high { border-left: 4px solid #dc3545; }
+    .priority-urgent { border-left: 4px solid #6f42c1; }
+    .priority-medium { border-left: 4px solid #ffc107; }
+    .priority-low { border-left: 4px solid #28a745; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Referrals Dashboard</h1>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.total_sent }}</h3>
+                <p>Total Sent</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.total_received }}</h3>
+                <p>Total Received</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.pending_sent }}</h3>
+                <p>Pending Sent</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.urgent_referrals }}</h3>
+                <p>Urgent Referrals</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'referrals:create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create New Referral
+                        </a>
+                        <a href="{% url 'referrals:list' %}?view=sent" class="btn btn-outline-primary">
+                            <i class="fas fa-paper-plane"></i> Sent Referrals
+                        </a>
+                        <a href="{% url 'referrals:list' %}?view=received" class="btn btn-outline-success">
+                            <i class="fas fa-inbox"></i> Received Referrals
+                        </a>
+                        <a href="{% url 'referrals:list' %}?priority=urgent" class="btn btn-outline-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Urgent Referrals
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row">
+        <!-- Recent Sent Referrals -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Sent Referrals</h5>
+                    <a href="{% url 'referrals:list' %}?view=sent" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_sent %}
+                        <div class="list-group list-group-flush">
+                            {% for referral in recent_sent %}
+                            <div class="list-group-item priority-{{ referral.priority }}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {{ referral.patient.user.get_full_name }}
+                                            {% if referral.priority == 'urgent' %}
+                                                <span class="urgent-badge">URGENT</span>
+                                            {% endif %}
+                                        </h6>
+                                        <p class="mb-1">To: Dr. {{ referral.target_doctor.user.get_full_name }}</p>
+                                        <small class="text-muted">{{ referral.specialty }} - {{ referral.created_at|date:"M d, Y" }}</small>
+                                    </div>
+                                    <span class="badge badge-{{ referral.get_status_display_class }}">{{ referral.get_status_display }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent sent referrals.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Received Referrals -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Received Referrals</h5>
+                    <a href="{% url 'referrals:list' %}?view=received" class="btn btn-sm btn-outline-success">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_received %}
+                        <div class="list-group list-group-flush">
+                            {% for referral in recent_received %}
+                            <div class="list-group-item priority-{{ referral.priority }}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {{ referral.patient.user.get_full_name }}
+                                            {% if referral.priority == 'urgent' %}
+                                                <span class="urgent-badge">URGENT</span>
+                                            {% endif %}
+                                        </h6>
+                                        <p class="mb-1">From: Dr. {{ referral.referring_doctor.user.get_full_name }}</p>
+                                        <small class="text-muted">{{ referral.specialty }} - {{ referral.created_at|date:"M d, Y" }}</small>
+                                    </div>
+                                    <span class="badge badge-{{ referral.get_status_display_class }}">{{ referral.get_status_display }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent received referrals.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Urgent Referrals -->
+    {% if urgent_referrals %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Urgent Referrals Requiring Attention
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Specialty</th>
+                                    <th>From/To</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for referral in urgent_referrals %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ referral.patient.user.get_full_name }}</strong>
+                                        <span class="urgent-badge">URGENT</span>
+                                    </td>
+                                    <td>{{ referral.specialty }}</td>
+                                    <td>
+                                        {% if referral.referring_doctor == request.user.doctor_profile %}
+                                            To: Dr. {{ referral.target_doctor.user.get_full_name }}
+                                        {% else %}
+                                            From: Dr. {{ referral.referring_doctor.user.get_full_name }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ referral.created_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ referral.get_status_display_class }}">{{ referral.get_status_display }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'referrals:detail' referral.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh dashboard every 5 minutes
+    setTimeout(function() {
+        location.reload();
+    }, 300000);
+</script>
+{% endblock %}

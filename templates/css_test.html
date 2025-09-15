@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+{% block title %}Tailwind CSS Test - MediConnect{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Tailwind CSS Test Page</h1>
+            <p class="text-lg text-gray-600">Testing all Tailwind CSS features and medical color scheme</p>
+        </div>
+
+        <!-- Medical Color Scheme Test -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Medical Color Scheme</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-medical-blue text-white p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-2">Medical Blue</h3>
+                    <p class="text-blue-100">#1e40af - Primary brand color</p>
+                    <button class="mt-4 px-4 py-2 bg-blue-700 hover:bg-blue-800 rounded transition duration-300">
+                        Test Button
+                    </button>
+                </div>
+                <div class="bg-medical-green text-white p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-2">Medical Green</h3>
+                    <p class="text-green-100">#059669 - Success and positive actions</p>
+                    <button class="mt-4 px-4 py-2 bg-green-700 hover:bg-green-800 rounded transition duration-300">
+                        Test Button
+                    </button>
+                </div>
+                <div class="bg-medical-red text-white p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-2">Medical Red</h3>
+                    <p class="text-red-100">#dc2626 - Emergency and critical alerts</p>
+                    <button class="mt-4 px-4 py-2 bg-red-700 hover:bg-red-800 rounded transition duration-300">
+                        Test Button
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Responsive Design Test -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Responsive Design Test</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-medical-blue">Mobile First</h3>
+                    <p class="text-sm text-gray-600">Base: 1 column</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-medical-green">Small (sm:)</h3>
+                    <p class="text-sm text-gray-600">≥640px: 2 columns</p>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-yellow-600">Large (lg:)</h3>
+                    <p class="text-sm text-gray-600">≥1024px: 4 columns</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-purple-600">Responsive</h3>
+                    <p class="text-sm text-gray-600">Auto-adjusting</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hover Effects and Animations -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Hover Effects & Animations</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-gray-50 p-4 rounded-lg hover:bg-medical-blue hover:text-white transition duration-300 cursor-pointer">
+                    <h3 class="font-bold mb-2">Hover Color Change</h3>
+                    <p class="text-sm">Hover to see color transition</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg hover:shadow-xl hover:scale-105 transition duration-300 cursor-pointer">
+                    <h3 class="font-bold mb-2">Hover Scale & Shadow</h3>
+                    <p class="text-sm">Hover to see scale and shadow</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg hover:rotate-1 transition duration-300 cursor-pointer">
+                    <h3 class="font-bold mb-2">Hover Rotate</h3>
+                    <p class="text-sm">Hover to see rotation</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Font Awesome Icons Test -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Font Awesome Icons</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <i class="fas fa-heartbeat text-medical-red text-3xl mb-2"></i>
+                    <p class="text-sm">Heartbeat</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <i class="fas fa-ambulance text-medical-red text-3xl mb-2"></i>
+                    <p class="text-sm">Ambulance</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <i class="fas fa-user-md text-medical-blue text-3xl mb-2"></i>
+                    <p class="text-sm">Doctor</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <i class="fas fa-hospital text-medical-green text-3xl mb-2"></i>
+                    <p class="text-sm">Hospital</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <i class="fas fa-stethoscope text-medical-blue text-3xl mb-2"></i>
+                    <p class="text-sm">Stethoscope</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <i class="fas fa-pills text-medical-green text-3xl mb-2"></i>
+                    <p class="text-sm">Pills</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Button Styles Test -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Button Styles</h2>
+            <div class="space-y-4">
+                <div class="flex flex-wrap gap-4">
+                    <button class="px-4 py-2 bg-medical-blue text-white rounded-md hover:bg-blue-700 transition duration-300">
+                        Primary Button
+                    </button>
+                    <button class="px-4 py-2 bg-medical-green text-white rounded-md hover:bg-green-700 transition duration-300">
+                        Success Button
+                    </button>
+                    <button class="px-4 py-2 bg-medical-red text-white rounded-md hover:bg-red-700 transition duration-300">
+                        Emergency Button
+                    </button>
+                    <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-300">
+                        Secondary Button
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-4">
+                    <button class="px-6 py-3 bg-medical-blue text-white rounded-lg hover:bg-blue-700 transition duration-300 text-lg">
+                        Large Button
+                    </button>
+                    <button class="px-2 py-1 bg-medical-green text-white rounded text-sm hover:bg-green-700 transition duration-300">
+                        Small Button
+                    </button>
+                    <button class="px-4 py-2 bg-gradient-to-r from-medical-blue to-medical-green text-white rounded-md hover:from-blue-700 hover:to-green-700 transition duration-300">
+                        Gradient Button
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards and Shadows Test -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Cards & Shadows</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <h3 class="font-bold text-lg mb-2">Light Shadow</h3>
+                    <p class="text-gray-600">shadow-sm</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="font-bold text-lg mb-2">Medium Shadow</h3>
+                    <p class="text-gray-600">shadow-md</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-xl p-6">
+                    <h3 class="font-bold text-lg mb-2">Large Shadow</h3>
+                    <p class="text-gray-600">shadow-xl</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animation Test -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Animations</h2>
+            <div class="flex flex-wrap gap-6">
+                <div class="flex items-center space-x-2">
+                    <div class="h-3 w-3 bg-medical-red rounded-full animate-pulse"></div>
+                    <span>Emergency Alert (Pulse)</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="h-3 w-3 bg-medical-green rounded-full animate-ping"></div>
+                    <span>Active Status (Ping)</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="h-3 w-3 bg-medical-blue rounded-full animate-bounce"></div>
+                    <span>Loading (Bounce)</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-spinner animate-spin text-medical-blue"></i>
+                    <span>Processing (Spin)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Indicators -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Status Indicators</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="flex items-center p-4 bg-green-50 rounded-lg">
+                    <div class="h-3 w-3 bg-green-500 rounded-full mr-3"></div>
+                    <span class="text-green-800 font-medium">Available</span>
+                </div>
+                <div class="flex items-center p-4 bg-yellow-50 rounded-lg">
+                    <div class="h-3 w-3 bg-yellow-500 rounded-full mr-3"></div>
+                    <span class="text-yellow-800 font-medium">In Transit</span>
+                </div>
+                <div class="flex items-center p-4 bg-red-50 rounded-lg">
+                    <div class="h-3 w-3 bg-red-500 rounded-full animate-pulse mr-3"></div>
+                    <span class="text-red-800 font-medium">Emergency</span>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                    <div class="h-3 w-3 bg-gray-500 rounded-full mr-3"></div>
+                    <span class="text-gray-800 font-medium">Offline</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

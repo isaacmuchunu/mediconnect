@@ -1,0 +1,20 @@
+{
+  "name": "hospital_ereferral",
+  "version": "1.0.0",
+  "description": "The Hospital E-Referral System is a comprehensive Django-based application designed to facilitate electronic referrals between healthcare providers. It allows primary care doctors to securely and efficiently refer patients to specialists or other hospitals. The system includes various modules for patient management, doctor directories, referral tracking, notifications, administrative tools, and ambulance management.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "npx tailwindcss -i ./static/src/input.css -o ./static/dist/output.css "
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "tailwindcss": "^4.1.11"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.11"
+  }
+}

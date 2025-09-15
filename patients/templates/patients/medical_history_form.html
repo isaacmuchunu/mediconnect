@@ -1,0 +1,15 @@
+{% extends 'patients/base.html' %}
+{% block title %}Medical History{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-4">Medical History</h1>
+    <form method="post" class="bg-white p-6 rounded-lg shadow-md">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Save
+        </button>
+    </form>
+</div>
+{% endblock %}

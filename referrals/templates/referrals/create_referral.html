@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create New Referral{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-left: 4px solid #007bff;
+    }
+    .priority-urgent { border-left-color: #dc3545; }
+    .priority-high { border-left-color: #fd7e14; }
+    .priority-medium { border-left-color: #ffc107; }
+    .priority-low { border-left-color: #28a745; }
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+    .form-help {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-paper-plane"></i> Create New Referral
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" enctype="multipart/form-data" id="referralForm">
+                        {% csrf_token %}
+                        
+                        <!-- Patient Information -->
+                        <div class="form-section">
+                            <h5 class="mb-3">
+                                <i class="fas fa-user"></i> Patient Information
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="{{ form.patient.id_for_label }}" class="required-field">Patient</label>
+                                        {{ form.patient }}
+                                        {% if form.patient.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.patient.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-help">Select the patient for this referral</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Referral Details -->
+                        <div class="form-section">
+                            <h5 class="mb-3">
+                                <i class="fas fa-stethoscope"></i> Referral Details
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.target_doctor.id_for_label }}" class="required-field">Specialist Doctor</label>
+                                        {{ form.target_doctor }}
+                                        {% if form.target_doctor.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.target_doctor.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-help">Select the specialist doctor to refer to</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.specialty.id_for_label }}" class="required-field">Specialty</label>
+                                        {{ form.specialty }}
+                                        {% if form.specialty.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.specialty.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-help">Enter the medical specialty required</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.priority.id_for_label }}" class="required-field">Priority</label>
+                                        {{ form.priority }}
+                                        {% if form.priority.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.priority.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-help">Set the urgency level of this referral</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <div class="form-check mt-4">
+                                            {{ form.ambulance_required }}
+                                            <label class="form-check-label" for="{{ form.ambulance_required.id_for_label }}">
+                                                Ambulance Required
+                                            </label>
+                                            <div class="form-help">Check if patient transport is needed</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Clinical Information -->
+                        <div class="form-section">
+                            <h5 class="mb-3">
+                                <i class="fas fa-notes-medical"></i> Clinical Information
+                            </h5>
+                            <div class="form-group">
+                                <label for="{{ form.reason.id_for_label }}" class="required-field">Reason for Referral</label>
+                                {{ form.reason }}
+                                {% if form.reason.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.reason.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-help">Provide detailed clinical reason for this referral</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ form.notes.id_for_label }}">Additional Notes</label>
+                                {{ form.notes }}
+                                {% if form.notes.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.notes.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-help">Any additional information or special instructions</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Attachments -->
+                        <div class="form-section">
+                            <h5 class="mb-3">
+                                <i class="fas fa-paperclip"></i> Attachments
+                            </h5>
+                            <div class="form-group">
+                                <label for="{{ form.attachments.id_for_label }}">Medical Records & Documents</label>
+                                {{ form.attachments }}
+                                {% if form.attachments.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.attachments.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-help">Upload relevant medical records, test results, or images (PDF, DOC, JPG, PNG)</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="form-group text-center">
+                            <button type="button" class="btn btn-secondary mr-3" onclick="history.back()">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-paper-plane"></i> Send Referral
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Priority color coding
+    $('#id_priority').change(function() {
+        var priority = $(this).val();
+        var section = $(this).closest('.form-section');
+        section.removeClass('priority-urgent priority-high priority-medium priority-low');
+        if (priority) {
+            section.addClass('priority-' + priority);
+        }
+    });
+    
+    // Trigger initial priority styling
+    $('#id_priority').trigger('change');
+    
+    // Form validation
+    $('#referralForm').submit(function(e) {
+        var isValid = true;
+        var requiredFields = ['patient', 'target_doctor', 'specialty', 'priority', 'reason'];
+        
+        requiredFields.forEach(function(field) {
+            var input = $('#id_' + field);
+            if (!input.val()) {
+                input.addClass('is-invalid');
+                isValid = false;
+            } else {
+                input.removeClass('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+            return false;
+        }
+        
+        // Show loading state
+        $('#submitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Sending...');
+    });
+    
+    // Remove validation errors on input
+    $('input, select, textarea').on('input change', function() {
+        $(this).removeClass('is-invalid');
+    });
+    
+    // File upload preview
+    $('#id_attachments').change(function() {
+        var files = this.files;
+        var fileList = '';
+        for (var i = 0; i < files.length; i++) {
+            fileList += '<small class="d-block text-muted"><i class="fas fa-file"></i> ' + files[i].name + '</small>';
+        }
+        $(this).siblings('.form-help').html(fileList || 'Upload relevant medical records, test results, or images (PDF, DOC, JPG, PNG)');
+    });
+    
+    // Auto-suggest specialties
+    var specialties = [
+        'Cardiology', 'Dermatology', 'Endocrinology', 'Gastroenterology',
+        'Hematology', 'Neurology', 'Oncology', 'Orthopedics',
+        'Pediatrics', 'Psychiatry', 'Pulmonology', 'Radiology',
+        'Rheumatology', 'Surgery', 'Urology'
+    ];
+    
+    $('#id_specialty').autocomplete({
+        source: specialties,
+        minLength: 2
+    });
+});
+</script>
+{% endblock %}

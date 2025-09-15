@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Doctor Registration - Hospital E-Referral{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold text-gray-900">
+                Join Our Medical Network
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Register as a healthcare provider to start receiving referrals
+            </p>
+        </div>
+
+        <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+            <div class="px-6 py-8">
+                <form method="post" enctype="multipart/form-data" class="space-y-8">
+                    {% csrf_token %}
+                    
+                    <!-- Personal Information -->
+                    <div class="border-b border-gray-200 pb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-6">Personal Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.first_name.label }}
+                                </label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.last_name.label }}
+                                </label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.email.label }}
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.phone_number.label }}
+                                </label>
+                                {{ form.phone_number }}
+                                {% if form.phone_number.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.phone_number.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.date_of_birth.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.date_of_birth.label }}
+                                </label>
+                                {{ form.date_of_birth }}
+                                {% if form.date_of_birth.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.date_of_birth.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.gender.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.gender.label }}
+                                </label>
+                                {{ form.gender }}
+                                {% if form.gender.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.gender.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Professional Information -->
+                    <div class="border-b border-gray-200 pb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-6">Professional Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.medical_license_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.medical_license_number.label }}
+                                </label>
+                                {{ form.medical_license_number }}
+                                {% if form.medical_license_number.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.medical_license_number.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.license_state.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.license_state.label }}
+                                </label>
+                                {{ form.license_state }}
+                                {% if form.license_state.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.license_state.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.primary_specialty.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.primary_specialty.label }}
+                                </label>
+                                {{ form.primary_specialty }}
+                                {% if form.primary_specialty.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.primary_specialty.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.years_of_experience.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.years_of_experience.label }}
+                                </label>
+                                {{ form.years_of_experience }}
+                                {% if form.years_of_experience.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.years_of_experience.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="{{ form.primary_hospital.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.primary_hospital.label }}
+                                </label>
+                                {{ form.primary_hospital }}
+                                {% if form.primary_hospital.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.primary_hospital.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="border-b border-gray-200 pb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-6">Contact Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="md:col-span-2">
+                                <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.address.label }}
+                                </label>
+                                {{ form.address }}
+                                {% if form.address.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.address.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.city.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.city.label }}
+                                </label>
+                                {{ form.city }}
+                                {% if form.city.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.city.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.state.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.state.label }}
+                                </label>
+                                {{ form.state }}
+                                {% if form.state.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.state.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.zip_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.zip_code.label }}
+                                </label>
+                                {{ form.zip_code }}
+                                {% if form.zip_code.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.zip_code.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div class="pb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-6">Additional Information</h3>
+                        <div class="space-y-6">
+                            {% if form.bio %}
+                            <div>
+                                <label for="{{ form.bio.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.bio.label }}
+                                </label>
+                                {{ form.bio }}
+                                {% if form.bio.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.bio.errors.0 }}</p>
+                                {% endif %}
+                                <p class="mt-1 text-sm text-gray-500">Brief description of your practice and expertise</p>
+                            </div>
+                            {% endif %}
+                            
+                            {% if form.languages_spoken %}
+                            <div>
+                                <label for="{{ form.languages_spoken.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.languages_spoken.label }}
+                                </label>
+                                {{ form.languages_spoken }}
+                                {% if form.languages_spoken.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.languages_spoken.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Terms and Conditions -->
+                    <div class="border-t border-gray-200 pt-8">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input id="terms" name="terms" type="checkbox" required 
+                                       class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="terms" class="font-medium text-gray-700">
+                                    I agree to the 
+                                    <a href="#" class="text-blue-600 hover:text-blue-500">Terms of Service</a> 
+                                    and 
+                                    <a href="#" class="text-blue-600 hover:text-blue-500">Privacy Policy</a>
+                                </label>
+                                <p class="text-gray-500">By registering, you agree to our terms and conditions.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end space-x-3">
+                        <a href="{% url 'doctors:doctor_list' %}" 
+                           class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Cancel
+                        </a>
+                        <button type="submit" 
+                                class="bg-blue-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Submit Registration
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Custom styles for form fields */
+.form-control {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+select.form-control {
+    @apply bg-white;
+}
+
+textarea.form-control {
+    @apply resize-vertical;
+}
+
+input[type="date"].form-control {
+    @apply text-gray-700;
+}
+</style>
+
+<script>
+// Add form field classes
+document.addEventListener('DOMContentLoaded', function() {
+    const formFields = document.querySelectorAll('input, select, textarea');
+    formFields.forEach(field => {
+        if (!field.classList.contains('form-control') && field.type !== 'checkbox') {
+            field.classList.add('form-control');
+        }
+    });
+});
+</script>
+{% endblock %}
