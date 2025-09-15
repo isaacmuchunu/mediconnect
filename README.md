@@ -534,5 +534,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**🏥 MediConnect - Transforming Healthcare Communication, One Referral at a Time** 🚀#   m e d i c o n n e c t  
+**🏥 MediConnect - Transforming Healthcare Communication, One Referral at a Time** 🚀#   m e d i c o n n e c t 
+ 
  
