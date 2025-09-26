@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.gis',  # Temporarily disabled to bypass GDAL requirement
+
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
@@ -99,19 +99,18 @@ if DATABASE_URL:
         'default': dj_database_url.parse(DATABASE_URL)
     }
 else:
+    # Default to SQLite for development
     DATABASES = {
         'default': {
-            'ENGINE': 'django.contrib.gis.db.backends.postgis',
-            'NAME': os.getenv('DATABASE_NAME', 'health_ereferral'),
-            'USER': os.getenv('DATABASE_USER', 'postgres'),
-            'PASSWORD': os.getenv('DATABASE_PASSWORD', ''),
-            'HOST': os.getenv('DATABASE_HOST', 'localhost'),
-            'PORT': os.getenv('DATABASE_PORT', '5432'),
-            'OPTIONS': {
-                'sslmode': 'prefer',
-            },
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+
+# Use PostgreSQL with standard backend (no PostGIS)
+if DATABASE_URL and 'postgresql' in DATABASE_URL:
+    DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql'
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'prefer'}
 
 # Database connection pooling for production
 if not DEBUG:
@@ -219,8 +218,7 @@ CORS_ALLOWED_HEADERS = [
 # Custom User Model
 AUTH_USER_MODEL = 'users.User'
 
-# GDAL Configuration
-GDAL_LIBRARY_PATH = os.getenv('GDAL_LIBRARY_PATH', r'C:\OSGeo4W\bin\gdal311.dll')
+
 
 # Security Settings
 if not DEBUG:

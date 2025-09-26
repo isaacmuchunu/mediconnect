@@ -8,10 +8,7 @@ from django.urls import reverse_lazy
 from django.db.models import Q, Count, Avg, F, Case, When, IntegerField
 from django.utils import timezone
 from datetime import datetime, timedelta
-# Temporarily disabled GIS imports for basic setup
-# from django.contrib.gis.geos import Point
-# from django.contrib.gis.measure import Distance
-# from django.contrib.gis.db.models.functions import Distance as DistanceFunction
+# GIS functionality removed - using standard latitude/longitude fields instead
 from django.views.decorators.http import require_http_methods, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize

@@ -1,7 +1,8 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.contrib.gis.geos import Point
+# GIS functionality removed - using standard latitude/longitude fields
+# from django.contrib.gis.geos import Point
 from django.utils import timezone
 from datetime import timedelta
 import json
@@ -31,7 +32,8 @@ class AmbulanceModelTest(TestCase):
             name="Central Station",
             code="CS01",
             address="123 Main St",
-            location=Point(-74.0060, 40.7128),
+            # location coordinates stored as separate lat/lng fields
+            # latitude=-74.0060, longitude=40.7128,
             phone="555-0123"
         )
 
@@ -46,7 +48,8 @@ class AmbulanceModelTest(TestCase):
             patient_capacity=2,
             crew_capacity=3,
             home_station=self.station,
-            current_location=Point(-74.0060, 40.7128)
+            # current_location coordinates stored as separate lat/lng fields
+            # current_latitude=-74.0060, current_longitude=40.7128
         )
 
     def test_ambulance_creation(self):

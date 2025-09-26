@@ -38,11 +38,11 @@ except ImportError:
     webpush = None
     push_protocol = None
 
-from .models import NotificationTemplate, NotificationLog, UserNotificationPreference
+from .models import NotificationTemplate, NotificationLog, NotificationPreference
 from patients.models import Patient
 from referrals.models import Referral
 from ambulances.models import Ambulance
-from hospitals.models import Hospital
+from doctors.models import Hospital
 
 logger = logging.getLogger(__name__)
 

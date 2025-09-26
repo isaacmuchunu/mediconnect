@@ -169,22 +169,22 @@ def load_sample_data():
                 defaults=type_data
             )
         
-        # Create ambulance stations
-        from django.contrib.gis.geos import Point
+        # Create ambulance stations (GIS functionality removed)
+        # from django.contrib.gis.geos import Point
         
         stations = [
             {
                 'name': 'Central Station',
                 'code': 'CS01',
                 'address': '123 Main St, City Center',
-                'location': Point(-74.0060, 40.7128),
+                # 'location': Point(-74.0060, 40.7128),  # GIS removed
                 'phone': '555-0123'
             },
             {
                 'name': 'North Station',
                 'code': 'NS01',
                 'address': '456 North Ave, North District',
-                'location': Point(-74.0160, 40.7228),
+                # 'location': Point(-74.0160, 40.7228),  # GIS removed
                 'phone': '555-0124'
             }
         ]

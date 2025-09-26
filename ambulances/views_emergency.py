@@ -16,8 +16,7 @@ from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.db.models import Q, Count, Avg
 from django.core.paginator import Paginator
-from django.contrib.gis.geos import Point
-from django.contrib.gis.measure import Distance
+# GIS functionality removed - using standard latitude/longitude fields instead
 
 from .models import EmergencyCall, CallStatusHistory, CallPriorityAssessment, Ambulance, Dispatch
 from .forms_emergency import EmergencyCallForm, CallPriorityAssessmentForm
@@ -200,7 +199,9 @@ class EmergencyCallCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVie
         if address:
             # TODO: Implement geocoding service
             # For now, set a default location
-            form.instance.incident_location = Point(-74.0060, 40.7128)  # NYC default
+            # Store coordinates as separate latitude/longitude fields instead of Point
+            # form.instance.incident_latitude = 40.7128  # NYC default
+            # form.instance.incident_longitude = -74.0060
         
         response = super().form_valid(form)
         
