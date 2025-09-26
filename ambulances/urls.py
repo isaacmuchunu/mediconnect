@@ -3,10 +3,29 @@ from . import views
 from . import views_emergency
 from . import views_gps
 from . import views_mobile
+from .pwa_views import (
+    AmbulanceCrewDashboardView, DispatchView, NavigationView, PatientDataView,
+    CommunicationView, OfflineView, update_ambulance_status, update_gps_location,
+    get_current_dispatch, pwa_health_check
+)
 
 app_name = 'ambulances'
 
 urlpatterns = [
+    # PWA Routes for Ambulance Crews (New Enhanced Mobile Interface)
+    path('crew/', AmbulanceCrewDashboardView.as_view(), name='crew_dashboard'),
+    path('crew/dispatch/', DispatchView.as_view(), name='crew_dispatch'),
+    path('crew/navigation/', NavigationView.as_view(), name='crew_navigation'),
+    path('crew/patient/', PatientDataView.as_view(), name='crew_patient'),
+    path('crew/communication/', CommunicationView.as_view(), name='crew_communication'),
+    path('crew/offline/', OfflineView.as_view(), name='crew_offline'),
+    
+    # PWA API Endpoints
+    path('api/status/', update_ambulance_status, name='api_update_status'),
+    path('api/gps/', update_gps_location, name='api_update_gps'),
+    path('api/dispatch/current/', get_current_dispatch, name='api_current_dispatch'),
+    path('api/health/', pwa_health_check, name='api_health_check'),
+    
     # Dashboard and Real-time Tracking
     path('', views.ambulance_dashboard, name='dashboard'),
     path('real-time/', views.real_time_dashboard, name='real_time_dashboard'),
