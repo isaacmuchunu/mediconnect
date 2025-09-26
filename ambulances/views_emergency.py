@@ -202,6 +202,7 @@ class EmergencyCallCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVie
             # Store coordinates as separate latitude/longitude fields instead of Point
             # form.instance.incident_latitude = 40.7128  # NYC default
             # form.instance.incident_longitude = -74.0060
+            pass
         
         response = super().form_valid(form)
         

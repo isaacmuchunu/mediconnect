@@ -1,0 +1,42 @@
+# Testing Dependencies for MediConnect
+pytest==7.4.0
+pytest-django==4.5.2
+pytest-cov==4.1.0
+pytest-mock==3.11.1
+pytest-xdist==3.3.1
+pytest-sugar==0.9.7
+pytest-html==3.2.0
+coverage==7.2.7
+factory-boy==3.3.0
+faker==19.3.0
+freezegun==1.2.2
+responses==0.23.1
+model-bakery==1.12.0
+
+# Performance Testing
+locust==2.16.1
+memory-profiler==0.60.0
+psutil==5.9.5
+
+# Security Testing
+bandit==1.7.5
+safety==2.3.4
+django-security==0.16.0
+
+# API Testing
+httpx==0.24.1
+requests-mock==1.11.0
+
+# Load Testing Tools
+artillery==1.7.9
+
+# Code Quality
+flake8==6.0.0
+black==23.7.0
+isort==5.12.0
+mypy==1.5.1
+django-stubs==4.2.3
+
+# Reporting
+junit-xml==1.9.0
+allure-pytest==2.13.2

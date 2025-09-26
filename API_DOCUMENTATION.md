@@ -1,430 +1,29 @@
-# 🔌 MediConnect API Documentation
+# MediConnect API Documentation
 
-## 📋 **API OVERVIEW**
+## Overview
 
-MediConnect provides a comprehensive RESTful API for all system operations, enabling seamless integration with external systems, mobile applications, and third-party services.
+MediConnect is a comprehensive hospital e-referral and emergency medical coordination system providing RESTful APIs for healthcare providers, ambulance services, and emergency responders.
 
-### **Base URL**
-```
-Production: https://your-domain.com/api/
-Development: http://127.0.0.1:8000/api/
-```
-
-### **Authentication**
-All API endpoints require authentication using Django's built-in authentication system or API tokens.
-
-```http
-Authorization: Token your_api_token_here
-Content-Type: application/json
-```
+**Base URL**: `https://api.mediconnect.com/`  
+**API Version**: v1  
+**Authentication**: Token-based authentication required for all endpoints
 
 ---
 
-## 🚨 **EMERGENCY CALL MANAGEMENT API**
+## Authentication
 
-### **Create Emergency Call**
+### Token Authentication
+All API requests must include an authentication token in the header:
+
 ```http
-POST /api/emergency/calls/
+Authorization: Token YOUR_API_TOKEN
 ```
 
-**Request Body:**
-```json
-{
-    "caller_name": "John Doe",
-    "caller_phone": "+1234567890",
-    "incident_location": "123 Main St, City, State",
-    "latitude": 40.7128,
-    "longitude": -74.0060,
-    "emergency_type": "medical",
-    "priority_level": "high",
-    "description": "Chest pain, difficulty breathing",
-    "patient_age": 65,
-    "patient_gender": "male",
-    "conscious": true,
-    "breathing": true
-}
-```
-
-**Response:**
-```json
-{
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "call_number": "EC-2024-001234",
-    "status": "active",
-    "priority_score": 85,
-    "created_at": "2024-01-15T10:30:00Z",
-    "estimated_response_time": 8
-}
-```
-
-### **Quick Dispatch**
-```http
-POST /api/emergency/quick-dispatch/
-```
-
-**Request Body:**
-```json
-{
-    "emergency_call_id": "550e8400-e29b-41d4-a716-446655440000",
-    "ambulance_id": "660e8400-e29b-41d4-a716-446655440001",
-    "priority": "urgent"
-}
-```
-
-### **Update Call Status**
-```http
-PATCH /api/emergency/calls/{call_id}/status/
-```
-
-**Request Body:**
-```json
-{
-    "status": "dispatched",
-    "notes": "Ambulance en route"
-}
-```
-
----
-
-## 📍 **GPS TRACKING API**
-
-### **Update GPS Location (Enhanced)**
-```http
-POST /api/gps/update-enhanced/
-```
-
-**Request Body:**
-```json
-{
-    "ambulance_id": "660e8400-e29b-41d4-a716-446655440001",
-    "latitude": 40.7128,
-    "longitude": -74.0060,
-    "altitude": 10.5,
-    "accuracy": 5.0,
-    "speed_kmh": 45.0,
-    "heading_degrees": 180,
-    "emergency_lights": true,
-    "siren_active": true,
-    "battery_level": 85,
-    "data_source": "mobile_app"
-}
-```
-
-**Response:**
-```json
-{
-    "status": "success",
-    "timestamp": "2024-01-15T10:35:00Z",
-    "location_id": "770e8400-e29b-41d4-a716-446655440002"
-}
-```
-
-### **Route Optimization**
-```http
-POST /api/gps/optimize-route/
-```
-
-**Request Body:**
-```json
-{
-    "ambulance_id": "660e8400-e29b-41d4-a716-446655440001",
-    "origin": {
-        "latitude": 40.7128,
-        "longitude": -74.0060
-    },
-    "destination": {
-        "latitude": 40.7589,
-        "longitude": -73.9851
-    },
-    "emergency_priority": "high",
-    "avoid_traffic": true
-}
-```
-
-**Response:**
-```json
-{
-    "route_id": "880e8400-e29b-41d4-a716-446655440003",
-    "estimated_duration_minutes": 12,
-    "distance_km": 8.5,
-    "route_points": [
-        {"lat": 40.7128, "lng": -74.0060},
-        {"lat": 40.7200, "lng": -74.0000},
-        {"lat": 40.7589, "lng": -73.9851}
-    ],
-    "traffic_conditions": "moderate",
-    "alternative_routes": 2
-}
-```
-
-### **Location Stream (WebSocket)**
-```
-ws://your-domain.com/ws/gps/location-stream/{ambulance_id}/
-```
-
-**Real-time Location Updates:**
-```json
-{
-    "type": "location_update",
-    "ambulance_id": "660e8400-e29b-41d4-a716-446655440001",
-    "latitude": 40.7128,
-    "longitude": -74.0060,
-    "speed_kmh": 45.0,
-    "heading": 180,
-    "timestamp": "2024-01-15T10:35:00Z"
-}
-```
-
----
-
-## 🏥 **HOSPITAL INTEGRATION API**
-
-### **Hospital Availability**
-```http
-GET /api/hospitals/availability/
-```
-
-**Query Parameters:**
-- `emergency_type`: Type of emergency (optional)
-- `specialty`: Required specialty (optional)
-- `lat`: Latitude for distance calculation
-- `lng`: Longitude for distance calculation
-
-**Response:**
-```json
-{
-    "status": "success",
-    "hospitals": [
-        {
-            "id": "990e8400-e29b-41d4-a716-446655440004",
-            "name": "City General Hospital",
-            "address": "456 Hospital Ave, City, State",
-            "distance_km": 3.2,
-            "capacity": {
-                "status": "normal",
-                "available_beds": 25,
-                "occupancy_rate": 75,
-                "icu_beds_available": 5,
-                "can_accept_patients": true
-            },
-            "ed_status": {
-                "is_open": true,
-                "average_wait_time": 15,
-                "trauma_center": true,
-                "can_accept_ambulances": true
-            },
-            "specialty_units": [
-                {
-                    "type": "icu",
-                    "name": "Intensive Care Unit",
-                    "available_capacity": 5,
-                    "wait_time_minutes": 0,
-                    "can_accept_patients": true
-                }
-            ]
-        }
-    ],
-    "total_available": 1
-}
-```
-
-### **Update Hospital Capacity**
-```http
-POST /api/hospitals/capacity/update/
-```
-
-**Request Body:**
-```json
-{
-    "hospital_id": "990e8400-e29b-41d4-a716-446655440004",
-    "total_beds": 100,
-    "occupied_beds": 75,
-    "reserved_beds": 5,
-    "ed_wait_time_minutes": 15,
-    "ed_patients_waiting": 8,
-    "icu_beds_available": 5,
-    "ambulance_diversion": false
-}
-```
-
-### **Update ED Status**
-```http
-POST /api/hospitals/ed/update/
-```
-
-**Request Body:**
-```json
-{
-    "hospital_id": "990e8400-e29b-41d4-a716-446655440004",
-    "is_open": true,
-    "diversion_status": false,
-    "level_1_wait_minutes": 0,
-    "level_2_wait_minutes": 5,
-    "level_3_wait_minutes": 15,
-    "level_4_wait_minutes": 30,
-    "level_5_wait_minutes": 60,
-    "patients_waiting": 8,
-    "physicians_on_duty": 4,
-    "nurses_on_duty": 12
-}
-```
-
----
-
-## 📱 **MOBILE API ENDPOINTS**
-
-### **Mobile GPS Update**
-```http
-POST /api/mobile/gps/
-```
-
-**Request Body:**
-```json
-{
-    "latitude": 40.7128,
-    "longitude": -74.0060,
-    "accuracy": 5.0,
-    "speed_kmh": 45.0,
-    "heading_degrees": 180,
-    "emergency_lights": true,
-    "siren_active": true,
-    "battery_level": 85
-}
-```
-
-### **Quick Status Update**
-```http
-POST /api/mobile/status/
-```
-
-**Request Body:**
-```json
-{
-    "status": "en_route"
-}
-```
-
-**Response:**
-```json
-{
-    "status": "success",
-    "message": "Status updated to en_route",
-    "new_status": "en_route"
-}
-```
-
----
-
-## 💬 **COMMUNICATIONS API**
-
-### **Send Notification**
-```http
-POST /api/communications/notifications/send/
-```
-
-**Request Body:**
-```json
-{
-    "recipient_user_id": "aa0e8400-e29b-41d4-a716-446655440005",
-    "subject": "Emergency Dispatch Alert",
-    "message": "New emergency call assigned to your ambulance",
-    "notification_type": "emergency_dispatch",
-    "priority": "urgent",
-    "channels": ["push", "sms"]
-}
-```
-
-### **Create Secure Message**
-```http
-POST /api/communications/messages/
-```
-
-**Request Body:**
-```json
-{
-    "recipients": ["bb0e8400-e29b-41d4-a716-446655440006"],
-    "subject": "Patient Handoff Information",
-    "message": "Patient details for incoming ambulance...",
-    "message_type": "handoff",
-    "related_patient": "patient_id_123"
-}
-```
-
-### **Emergency Alert**
-```http
-POST /api/communications/alerts/
-```
-
-**Request Body:**
-```json
-{
-    "title": "Mass Casualty Incident",
-    "message": "Multiple vehicle accident on Highway 101",
-    "alert_type": "mass_casualty",
-    "severity": "critical",
-    "target_roles": ["PARAMEDIC", "EMT", "DISPATCHER"],
-    "requires_acknowledgment": true
-}
-```
-
----
-
-## 📊 **ANALYTICS API**
-
-### **Widget Data**
-```http
-GET /api/analytics/widget/{widget_id}/data/
-```
-
-**Query Parameters:**
-- `range`: Time range (1h, 24h, 7d, 30d)
-
-**Response:**
-```json
-{
-    "status": "success",
-    "data": {
-        "labels": ["00:00", "01:00", "02:00", "03:00"],
-        "datasets": [{
-            "label": "Dispatch Volume",
-            "data": [5, 3, 2, 4],
-            "backgroundColor": "#3b82f6"
-        }]
-    },
-    "last_updated": "2024-01-15T10:35:00Z"
-}
-```
-
-### **Log Analytics Event**
-```http
-POST /api/analytics/events/log/
-```
-
-**Request Body:**
-```json
-{
-    "event_type": "dispatch_created",
-    "event_name": "Emergency Dispatch Created",
-    "event_data": {
-        "emergency_type": "medical",
-        "priority": "high",
-        "response_time": 8
-    },
-    "duration_ms": 1500
-}
-```
-
----
-
-## 🔐 **AUTHENTICATION & SECURITY**
-
-### **Obtain API Token**
+### Obtain Token
 ```http
 POST /api/auth/token/
-```
+Content-Type: application/json
 
-**Request Body:**
-```json
 {
     "username": "your_username",
     "password": "your_password"
@@ -434,166 +33,499 @@ POST /api/auth/token/
 **Response:**
 ```json
 {
-    "token": "your_api_token_here",
-    "user_id": "cc0e8400-e29b-41d4-a716-446655440007",
-    "expires_at": "2024-01-16T10:30:00Z"
+    "token": "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b",
+    "user_id": 123,
+    "role": "DISPATCHER"
 }
 ```
 
-### **Refresh Token**
+---
+
+## Core API Endpoints
+
+### 1. Emergency Call Management
+
+#### Create Emergency Call
 ```http
-POST /api/auth/token/refresh/
+POST /api/emergency/calls/
+Content-Type: application/json
+
+{
+    "caller_phone": "+1-555-0123",
+    "caller_name": "John Doe",
+    "incident_address": "123 Main St, NYC",
+    "patient_name": "Jane Smith",
+    "patient_age": 45,
+    "patient_gender": "F",
+    "chief_complaint": "Chest pain",
+    "priority": "critical",
+    "call_type": "medical"
+}
 ```
 
-### **User Profile**
+#### List Emergency Calls
 ```http
-GET /api/auth/user/
+GET /api/emergency/calls/
+```
+
+**Query Parameters:**
+- `status`: Filter by call status (received, processing, dispatched, completed)
+- `priority`: Filter by priority (routine, urgent, emergency, critical)
+- `search`: Search by call number, patient name, or caller name
+
+#### Get Call Details
+```http
+GET /api/emergency/calls/{call_id}/
+```
+
+#### Quick Dispatch
+```http
+POST /api/emergency/quick-dispatch/
+Content-Type: application/json
+
+{
+    "call_id": "uuid",
+    "ambulance_id": "uuid"
+}
+```
+
+### 2. Ambulance Management
+
+#### List Ambulances
+```http
+GET /api/ambulances/
+```
+
+**Query Parameters:**
+- `status`: available, dispatched, en_route, on_scene, out_of_service
+- `location`: Coordinates for proximity search
+- `type`: Ambulance type filter
+
+#### Update Ambulance Status
+```http
+POST /api/ambulances/status/
+Content-Type: application/json
+
+{
+    "ambulance_id": "uuid",
+    "status": "en_route",
+    "notes": "Responding to emergency call"
+}
+```
+
+#### Update GPS Location
+```http
+POST /api/ambulances/gps/
+Content-Type: application/json
+
+{
+    "ambulance_id": "uuid",
+    "latitude": 40.7128,
+    "longitude": -74.0060,
+    "accuracy": 10.0,
+    "speed": 35.5,
+    "heading": 180.0
+}
+```
+
+#### Real-time Location Stream
+```http
+GET /api/ambulances/location-stream/{ambulance_id}/
+```
+
+### 3. Hospital Integration
+
+#### Hospital Status
+```http
+GET /api/hospitals/{hospital_id}/status/
 ```
 
 **Response:**
 ```json
 {
-    "id": "cc0e8400-e29b-41d4-a716-446655440007",
-    "username": "john_doe",
-    "email": "john@example.com",
-    "first_name": "John",
-    "last_name": "Doe",
-    "role": "PARAMEDIC",
-    "is_active": true,
-    "last_login": "2024-01-15T09:00:00Z"
+    "hospital_id": "uuid",
+    "name": "General Hospital",
+    "emergency_department": {
+        "status": "open",
+        "wait_time_minutes": 45,
+        "capacity_percentage": 85,
+        "diversion_status": false
+    },
+    "bed_availability": {
+        "total_beds": 200,
+        "available_beds": 15,
+        "icu_beds": 5,
+        "emergency_beds": 8
+    },
+    "last_updated": "2024-01-15T10:30:00Z"
 }
 ```
 
----
-
-## 📝 **ERROR HANDLING**
-
-### **Standard Error Response**
-```json
-{
-    "status": "error",
-    "message": "Detailed error message",
-    "code": "ERROR_CODE",
-    "details": {
-        "field": ["Field-specific error message"]
-    }
-}
-```
-
-### **HTTP Status Codes**
-- `200`: Success
-- `201`: Created
-- `400`: Bad Request
-- `401`: Unauthorized
-- `403`: Forbidden
-- `404`: Not Found
-- `429`: Rate Limited
-- `500`: Internal Server Error
-
----
-
-## 🚀 **RATE LIMITING**
-
-API endpoints are rate-limited to ensure system stability:
-
-- **Authentication**: 5 requests per minute
-- **GPS Updates**: 120 requests per minute
-- **General API**: 60 requests per minute
-- **Analytics**: 30 requests per minute
-
-Rate limit headers are included in responses:
+#### Update Hospital Status
 ```http
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 45
-X-RateLimit-Reset: 1642248600
+POST /api/hospitals/{hospital_id}/status/
+Content-Type: application/json
+
+{
+    "emergency_department": {
+        "status": "diversion",
+        "wait_time_minutes": 120,
+        "reason": "Overcapacity"
+    },
+    "bed_availability": {
+        "available_beds": 5,
+        "icu_beds": 1
+    }
+}
+```
+
+#### Hospital Recommendations
+```http
+POST /api/hospitals/recommend/
+Content-Type: application/json
+
+{
+    "patient_condition": "cardiac arrest",
+    "ambulance_location": {
+        "latitude": 40.7128,
+        "longitude": -74.0060
+    },
+    "specialty_required": "cardiology",
+    "priority": "critical"
+}
+```
+
+### 4. Dispatch Management
+
+#### Create Dispatch
+```http
+POST /api/dispatches/
+Content-Type: application/json
+
+{
+    "referral_id": "uuid",
+    "ambulance_id": "uuid",
+    "priority": "emergency",
+    "pickup_address": "123 Main St",
+    "destination_address": "456 Hospital Ave",
+    "special_instructions": "Patient has chest pain"
+}
+```
+
+#### Update Dispatch Status
+```http
+PUT /api/dispatches/{dispatch_id}/status/
+Content-Type: application/json
+
+{
+    "status": "on_scene",
+    "notes": "Arrived at scene, patient assessment in progress"
+}
+```
+
+#### List Active Dispatches
+```http
+GET /api/dispatches/active/
+```
+
+### 5. Notification System
+
+#### Send Notification
+```http
+POST /api/notifications/send/
+Content-Type: application/json
+
+{
+    "recipients": ["user1", "user2"],
+    "message": {
+        "title": "Emergency Alert",
+        "body": "Mass casualty incident reported",
+        "priority": "emergency",
+        "data": {
+            "incident_type": "mass_casualty",
+            "location": "Downtown area"
+        }
+    },
+    "channels": ["sms", "push", "email"]
+}
+```
+
+#### Emergency Alert Broadcast
+```http
+POST /api/notifications/emergency-alert/
+Content-Type: application/json
+
+{
+    "alert_type": "MASS_CASUALTY",
+    "message": "Multiple vehicle accident on I-95",
+    "affected_areas": ["Zone_A", "Zone_B"],
+    "priority": "emergency"
+}
+```
+
+#### User Notification Preferences
+```http
+GET /api/notifications/preferences/
+PUT /api/notifications/preferences/
+```
+
+### 6. Referral Management
+
+#### Create Referral
+```http
+POST /api/referrals/
+Content-Type: application/json
+
+{
+    "patient_id": "uuid",
+    "referring_doctor": "uuid",
+    "receiving_hospital": "uuid",
+    "specialty": "cardiology",
+    "urgency_level": "urgent",
+    "medical_history": "Previous MI",
+    "current_symptoms": "Chest pain, SOB",
+    "insurance_info": "Medicare #123456789"
+}
+```
+
+#### Update Referral Status
+```http
+PUT /api/referrals/{referral_id}/
+Content-Type: application/json
+
+{
+    "status": "accepted",
+    "receiving_doctor": "uuid",
+    "scheduled_datetime": "2024-01-16T14:30:00Z",
+    "notes": "Scheduled for emergency catheterization"
+}
 ```
 
 ---
 
-## 🔄 **WEBHOOKS**
+## Real-time WebSocket APIs
 
-### **Webhook Events**
-MediConnect can send webhooks for various events:
+### Ambulance Tracking
+```javascript
+// Connect to ambulance tracking
+const socket = new WebSocket('ws://api.mediconnect.com/ws/ambulance/{ambulance_id}/');
 
-- `emergency_call.created`
-- `dispatch.assigned`
-- `ambulance.status_changed`
-- `hospital.capacity_updated`
-- `alert.created`
+socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    // Handle real-time location updates
+};
+```
 
-### **Webhook Payload Example**
+### Emergency Alerts
+```javascript
+// Connect to emergency alerts
+const socket = new WebSocket('ws://api.mediconnect.com/ws/emergency-alerts/');
+
+socket.onmessage = function(event) {
+    const alert = JSON.parse(event.data);
+    // Handle emergency alerts
+};
+```
+
+### Dispatch Center
+```javascript
+// Connect to dispatch center updates
+const socket = new WebSocket('ws://api.mediconnect.com/ws/dispatch/');
+
+socket.onmessage = function(event) {
+    const update = JSON.parse(event.data);
+    // Handle dispatch updates
+};
+```
+
+---
+
+## Response Codes
+
+| Code | Description |
+|------|-------------|
+| 200  | Success |
+| 201  | Created |
+| 400  | Bad Request |
+| 401  | Unauthorized |
+| 403  | Forbidden |
+| 404  | Not Found |
+| 429  | Rate Limit Exceeded |
+| 500  | Internal Server Error |
+| 503  | Service Unavailable |
+
+---
+
+## Rate Limiting
+
+- **Anonymous users**: 100 requests per hour
+- **Authenticated users**: 1000 requests per hour
+- **Emergency endpoints**: 5000 requests per hour
+- **Real-time GPS updates**: No limit
+
+---
+
+## Error Response Format
+
 ```json
 {
-    "event": "dispatch.assigned",
-    "timestamp": "2024-01-15T10:30:00Z",
-    "data": {
-        "dispatch_id": "dd0e8400-e29b-41d4-a716-446655440008",
-        "ambulance_id": "660e8400-e29b-41d4-a716-446655440001",
-        "emergency_call_id": "550e8400-e29b-41d4-a716-446655440000",
-        "priority": "urgent"
+    "error": {
+        "code": "INVALID_REQUEST",
+        "message": "The request is missing required parameters",
+        "details": {
+            "missing_fields": ["patient_id", "priority"]
+        },
+        "timestamp": "2024-01-15T10:30:00Z"
     }
 }
 ```
 
 ---
 
-## 📚 **SDK & LIBRARIES**
+## Data Models
 
-### **JavaScript SDK**
-```javascript
-import MediConnectAPI from 'mediconnect-js-sdk';
-
-const api = new MediConnectAPI({
-    baseURL: 'https://your-domain.com/api/',
-    token: 'your_api_token'
-});
-
-// Create emergency call
-const call = await api.emergency.createCall({
-    caller_name: 'John Doe',
-    incident_location: '123 Main St',
-    emergency_type: 'medical'
-});
+### Emergency Call
+```json
+{
+    "id": "uuid",
+    "call_number": "CALL-20240115-001",
+    "caller_phone": "+1-555-0123",
+    "caller_name": "John Doe",
+    "incident_address": "123 Main St, NYC",
+    "patient_name": "Jane Smith",
+    "patient_age": 45,
+    "chief_complaint": "Chest pain",
+    "priority": "critical",
+    "status": "dispatched",
+    "received_at": "2024-01-15T10:30:00Z",
+    "dispatched_at": "2024-01-15T10:33:00Z"
+}
 ```
 
-### **Python SDK**
+### Ambulance
+```json
+{
+    "id": "uuid",
+    "license_plate": "AMB-001",
+    "call_sign": "Unit 12",
+    "status": "available",
+    "current_location": {
+        "latitude": 40.7128,
+        "longitude": -74.0060,
+        "accuracy": 10.0
+    },
+    "ambulance_type": "ALS",
+    "crew": [
+        {
+            "name": "John Smith",
+            "role": "paramedic",
+            "certification": "NREMT-P"
+        }
+    ]
+}
+```
+
+---
+
+## SDK Examples
+
+### Python SDK
 ```python
-from mediconnect import MediConnectAPI
+import mediconnect
 
-api = MediConnectAPI(
-    base_url='https://your-domain.com/api/',
-    token='your_api_token'
-)
+client = mediconnect.Client(api_token='your_token')
 
-# Update GPS location
-api.gps.update_location(
-    ambulance_id='660e8400-e29b-41d4-a716-446655440001',
+# Create emergency call
+call = client.emergency_calls.create({
+    'caller_phone': '+1-555-0123',
+    'patient_name': 'Jane Doe',
+    'chief_complaint': 'Chest pain',
+    'priority': 'critical'
+})
+
+# Update ambulance location
+client.ambulances.update_location(
+    ambulance_id='uuid',
     latitude=40.7128,
     longitude=-74.0060
 )
 ```
 
----
+### JavaScript SDK
+```javascript
+import MediConnect from 'mediconnect-js';
 
-## 🧪 **TESTING**
+const client = new MediConnect({
+    apiToken: 'your_token',
+    baseURL: 'https://api.mediconnect.com'
+});
 
-### **API Testing with cURL**
-```bash
-# Test emergency call creation
-curl -X POST https://your-domain.com/api/emergency/calls/ \
-  -H "Authorization: Token your_token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "caller_name": "Test User",
-    "incident_location": "Test Location",
-    "emergency_type": "medical"
-  }'
+// Send emergency alert
+await client.notifications.sendEmergencyAlert({
+    alertType: 'MASS_CASUALTY',
+    message: 'Multiple vehicle accident',
+    affectedAreas: ['Zone_A']
+});
 ```
 
-### **Postman Collection**
-Import our Postman collection for comprehensive API testing:
-`https://your-domain.com/api/postman-collection.json`
+---
+
+## Webhook Integration
+
+### Emergency Call Events
+```http
+POST https://your-server.com/webhooks/emergency-calls
+Content-Type: application/json
+
+{
+    "event": "call.created",
+    "data": {
+        "call_id": "uuid",
+        "priority": "critical",
+        "location": "123 Main St"
+    },
+    "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+### Ambulance Status Events
+```http
+POST https://your-server.com/webhooks/ambulance-status
+Content-Type: application/json
+
+{
+    "event": "ambulance.status_changed",
+    "data": {
+        "ambulance_id": "uuid",
+        "old_status": "available",
+        "new_status": "dispatched"
+    },
+    "timestamp": "2024-01-15T10:30:00Z"
+}
+```
 
 ---
 
-**📞 For API support, contact our development team or check the interactive API documentation at `/api/docs/`**
+## Security Considerations
+
+1. **HIPAA Compliance**: All patient data is encrypted and access is logged
+2. **Authentication**: Token-based authentication with expiration
+3. **Rate Limiting**: Prevents API abuse and ensures fair usage
+4. **Data Validation**: All inputs are validated and sanitized
+5. **Audit Logging**: All API calls are logged for compliance
+6. **HTTPS Only**: All communication must use HTTPS
+7. **IP Whitelisting**: Optional IP restriction for sensitive endpoints
+
+---
+
+## Support
+
+- **Documentation**: https://docs.mediconnect.com
+- **API Status**: https://status.mediconnect.com
+- **Support Email**: api-support@mediconnect.com
+- **Emergency Contact**: +1-800-MEDIC-01
+
+---
+
+*Last Updated: January 15, 2024*
+*API Version: 1.0*

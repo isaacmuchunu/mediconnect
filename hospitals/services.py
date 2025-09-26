@@ -17,7 +17,7 @@ from django.db import transaction
 from django.utils import timezone
 from channels.layers import get_channel_layer
 
-from .models import Hospital, Department, BedAvailability, EmergencyDepartment
+from doctors.models import Hospital
 from patients.models import Patient
 from referrals.models import Referral
 

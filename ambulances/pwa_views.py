@@ -19,12 +19,12 @@ from django.views.decorators.http import require_http_methods
 from django.core.cache import cache
 from django.conf import settings
 
-from .models import Ambulance, AmbulanceCrewMember, DispatchLog
+from .models import Ambulance, AmbulanceCrew, Dispatch
 from .services import gps_service
 from patients.models import Patient
 from referrals.models import Referral
-from hospitals.models import Hospital
-from core.decorators import ambulance_crew_required
+from doctors.models import Hospital
+# Core decorators not available - using standard Django decorators
 
 logger = logging.getLogger(__name__)
 
@@ -39,17 +39,17 @@ class AmbulanceCrewDashboardView(LoginRequiredMixin, TemplateView):
         
         try:
             # Get crew member's ambulance
-            crew_member = AmbulanceCrewMember.objects.get(user=self.request.user)
+            crew_member = AmbulanceCrew.objects.get(crew_member=self.request.user)
             ambulance = crew_member.ambulance
             
             # Get current dispatch
-            current_dispatch = DispatchLog.objects.filter(
+            current_dispatch = Dispatch.objects.filter(
                 ambulance=ambulance,
                 status__in=['DISPATCHED', 'EN_ROUTE', 'ON_SCENE', 'TRANSPORTING']
             ).order_by('-created_at').first()
             
             # Get recent dispatches
-            recent_dispatches = DispatchLog.objects.filter(
+            recent_dispatches = Dispatch.objects.filter(
                 ambulance=ambulance
             ).order_by('-created_at')[:10]
             
@@ -93,7 +93,7 @@ class AmbulanceCrewDashboardView(LoginRequiredMixin, TemplateView):
                 'google_maps_api_key': getattr(settings, 'GOOGLE_MAPS_API_KEY', ''),
             })
             
-        except AmbulanceCrewMember.DoesNotExist:
+        except AmbulanceCrew.DoesNotExist:
             context.update({
                 'error': 'You are not assigned to an ambulance crew.',
                 'is_pwa': True
@@ -117,11 +117,11 @@ class DispatchView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         
         try:
-            crew_member = AmbulanceCrewMember.objects.get(user=self.request.user)
+            crew_member = AmbulanceCrew.objects.get(crew_member=self.request.user)
             ambulance = crew_member.ambulance
             
             # Get current active dispatch
-            dispatch = DispatchLog.objects.filter(
+            dispatch = Dispatch.objects.filter(
                 ambulance=ambulance,
                 status__in=['DISPATCHED', 'EN_ROUTE', 'ON_SCENE', 'TRANSPORTING']
             ).order_by('-created_at').first()
@@ -183,7 +183,7 @@ class DispatchView(LoginRequiredMixin, TemplateView):
                     'message': 'No active dispatch assignment'
                 })
                 
-        except AmbulanceCrewMember.DoesNotExist:
+        except AmbulanceCrew.DoesNotExist:
             context['error'] = 'You are not assigned to an ambulance crew.'
         except Exception as e:
             logger.error(f"Error in dispatch view: {str(e)}")
@@ -202,11 +202,11 @@ class NavigationView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         
         try:
-            crew_member = AmbulanceCrewMember.objects.get(user=self.request.user)
+            crew_member = AmbulanceCrew.objects.get(crew_member=self.request.user)
             ambulance = crew_member.ambulance
             
             # Get current dispatch for navigation
-            dispatch = DispatchLog.objects.filter(
+            dispatch = Dispatch.objects.filter(
                 ambulance=ambulance,
                 status__in=['DISPATCHED', 'EN_ROUTE', 'ON_SCENE', 'TRANSPORTING']
             ).order_by('-created_at').first()
@@ -266,7 +266,7 @@ class NavigationView(LoginRequiredMixin, TemplateView):
                 'has_gps': ambulance.current_latitude is not None
             })
             
-        except AmbulanceCrewMember.DoesNotExist:
+        except AmbulanceCrew.DoesNotExist:
             context['error'] = 'You are not assigned to an ambulance crew.'
         except Exception as e:
             logger.error(f"Error in navigation view: {str(e)}")
@@ -285,11 +285,11 @@ class PatientDataView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         
         try:
-            crew_member = AmbulanceCrewMember.objects.get(user=self.request.user)
+            crew_member = AmbulanceCrew.objects.get(crew_member=self.request.user)
             ambulance = crew_member.ambulance
             
             # Get current dispatch
-            dispatch = DispatchLog.objects.filter(
+            dispatch = Dispatch.objects.filter(
                 ambulance=ambulance,
                 status__in=['DISPATCHED', 'EN_ROUTE', 'ON_SCENE', 'TRANSPORTING']
             ).order_by('-created_at').first()
@@ -367,7 +367,7 @@ class PatientDataView(LoginRequiredMixin, TemplateView):
                 'dispatch_id': str(dispatch.id) if dispatch else None
             })
             
-        except AmbulanceCrewMember.DoesNotExist:
+        except AmbulanceCrew.DoesNotExist:
             context['error'] = 'You are not assigned to an ambulance crew.'
         except Exception as e:
             logger.error(f"Error in patient data view: {str(e)}")
@@ -386,7 +386,7 @@ class CommunicationView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         
         try:
-            crew_member = AmbulanceCrewMember.objects.get(user=self.request.user)
+            crew_member = AmbulanceCrew.objects.get(crew_member=self.request.user)
             ambulance = crew_member.ambulance
             
             # Emergency contacts
@@ -426,7 +426,7 @@ class CommunicationView(LoginRequiredMixin, TemplateView):
                 'websocket_url': f"ws://{self.request.get_host()}/ws/ambulance/{ambulance.id}/"
             })
             
-        except AmbulanceCrewMember.DoesNotExist:
+        except AmbulanceCrew.DoesNotExist:
             context['error'] = 'You are not assigned to an ambulance crew.'
         except Exception as e:
             logger.error(f"Error in communication view: {str(e)}")
@@ -450,7 +450,7 @@ class OfflineView(TemplateView):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@ambulance_crew_required
+@login_required  # ambulance_crew_required not available
 def update_ambulance_status(request):
     """
     Update ambulance status via PWA.
@@ -482,7 +482,7 @@ def update_ambulance_status(request):
                 'error': 'Invalid status'
             }, status=400)
             
-    except AmbulanceCrewMember.DoesNotExist:
+    except AmbulanceCrew.DoesNotExist:
         return JsonResponse({
             'success': False,
             'error': 'Not authorized'
@@ -501,7 +501,7 @@ def update_ambulance_status(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@ambulance_crew_required
+@login_required  # ambulance_crew_required not available
 def update_gps_location(request):
     """
     Update ambulance GPS location via PWA.
@@ -555,7 +555,7 @@ def update_gps_location(request):
                 'error': 'Latitude and longitude required'
             }, status=400)
             
-    except AmbulanceCrewMember.DoesNotExist:
+    except AmbulanceCrew.DoesNotExist:
         return JsonResponse({
             'success': False,
             'error': 'Not authorized'
@@ -573,7 +573,7 @@ def update_gps_location(request):
         }, status=500)
 
 @require_http_methods(["GET"])
-@ambulance_crew_required
+@login_required  # ambulance_crew_required not available
 def get_current_dispatch(request):
     """
     Get current dispatch information for PWA.
@@ -582,7 +582,7 @@ def get_current_dispatch(request):
         crew_member = AmbulanceCrewMember.objects.get(user=request.user)
         ambulance = crew_member.ambulance
         
-        dispatch = DispatchLog.objects.filter(
+        dispatch = Dispatch.objects.filter(
             ambulance=ambulance,
             status__in=['DISPATCHED', 'EN_ROUTE', 'ON_SCENE', 'TRANSPORTING']
         ).order_by('-created_at').first()
@@ -614,7 +614,7 @@ def get_current_dispatch(request):
                 'message': 'No active dispatch'
             })
             
-    except AmbulanceCrewMember.DoesNotExist:
+    except AmbulanceCrew.DoesNotExist:
         return JsonResponse({
             'success': False,
             'error': 'Not authorized'

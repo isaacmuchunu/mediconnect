@@ -7,7 +7,8 @@ from rest_framework import serializers
 from django.utils import timezone
 from typing import Dict, Any
 
-from .models import Hospital, Department, BedAvailability, EmergencyDepartment
+from doctors.models import Hospital
+from .models_integration import BedAvailability, EmergencyDepartment
 from .services import BedType, EDStatus, BedCapacity, HospitalStatus
 
 

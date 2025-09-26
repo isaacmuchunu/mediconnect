@@ -16,7 +16,7 @@ urlpatterns = [
     path('notifications/', include('notifications.urls', namespace='notifications')),
     path('reports/', include('reports.urls', namespace='reports')),
     path('ambulances/', include('ambulances.urls', namespace='ambulances')),
-    path('hospitals/', include('hospitals.urls', namespace='hospitals')),
+    # path('hospitals/', include('hospitals.urls', namespace='hospitals')),  # Temporarily disabled
     path('communications/', include('communications.urls', namespace='communications')),
     path('analytics/', include('analytics.urls', namespace='analytics')),
     path('api/', include('api.urls')),
